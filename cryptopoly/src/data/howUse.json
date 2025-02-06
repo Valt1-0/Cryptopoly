@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Connect Your Wallet",
+    "description": "Click on the 'Connect Wallet' button at the top of the page to link your cryptocurrency wallet to Cryptopoly. We support wallets like MetaMask, Trust Wallet, and more."
+  },
+  {
+    "title": "Explore Features",
+    "description": "Navigate through the platform to discover trading, lending, borrowing, and earning features tailored to your needs."
+  },
+  {
+    "title": "Trade Assets",
+    "description": "Use our secure trading feature to buy and sell cryptocurrencies seamlessly."
+  },
+  {
+    "title": "Lend and Borrow",
+    "description": "Maximize your assets by lending to earn interest or borrowing against your holdings."
+  },
+  {
+    "title": "Earn Interest",
+    "description": "Deposit your assets into interest-earning accounts and watch your wealth grow over time."
+  },
+  {
+    "title": "Stay Secure",
+    "description": "Rely on our cutting-edge cryptographic security measures to ensure your transactions remain safe."
+  }
+]
