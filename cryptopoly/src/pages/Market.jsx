@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Card from "../components/Card";
 import { setupContracts, supCoin, resourceToken } from "../contracts/contrat";
-import { useWallet } from "../data/wallet";
+import { useWallet } from "../context/walletContext";
 import { ethers } from "ethers";
 
 const houses = [
