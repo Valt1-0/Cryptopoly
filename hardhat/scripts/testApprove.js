@@ -45,6 +45,26 @@ async function main() {
     resourceToken.address
   );
   console.log(`Allowance: ${allowance.toString()} SUP`);
+
+  // Mint a new resource (NFT)
+  const mintTx = await resourceToken.connect(user).mintResource(
+    user.address,
+    "Modern Villa",
+    "House",
+    ethers.utils.parseUnits("10", 18), // Value of the resource
+    "ipfs://example-ipfs-hash"
+  );
+  await mintTx.wait();
+  console.log("Minted a new resource (NFT)");
+
+  // Purchase the resource (NFT)
+  const purchaseTx = await resourceToken.connect(user).purchaseResource(1); // Assuming the tokenId is 1
+  await purchaseTx.wait();
+  console.log("Purchased the resource (NFT)");
+
+  // Verify the ownership of the resource
+  const owner = await resourceToken.ownerOf(1);
+  console.log(`Owner of the resource (NFT) with tokenId 1: ${owner}`);
 }
 
 main()

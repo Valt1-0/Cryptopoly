@@ -1,12 +1,13 @@
 const fs = require("fs");
 const path = require("path");
+
 task("faucet", "Sends ETH and tokens to an address")
   .addPositionalParam("receiver", "The address that will receive them")
-  .setAction(async ({ receiver }, { ethers }) => {
+  .setAction(async ({ receiver }, { ethers, network }) => {
     if (network.name === "hardhat") {
       console.warn(
         "You are running the faucet task with Hardhat network, which" +
-          "gets automatically created and destroyed every time. Use the Hardhat" +
+          " gets automatically created and destroyed every time. Use the Hardhat" +
           " option '--network localhost'"
       );
     }
@@ -20,7 +21,7 @@ task("faucet", "Sends ETH and tokens to an address")
       "contracts",
       "contract-address.json"
     );
-    console.log(addressesFile);
+
     if (!fs.existsSync(addressesFile)) {
       console.error("You need to deploy your contract first");
       return;
@@ -28,11 +29,7 @@ task("faucet", "Sends ETH and tokens to an address")
 
     const addressJson = fs.readFileSync(addressesFile);
     const address = JSON.parse(addressJson);
-    console.log(
-      "address ",
-      address.SupCoin,
-      await ethers.provider.getCode(address.SupCoin)
-    );
+
     if ((await ethers.provider.getCode(address.SupCoin)) === "0x") {
       console.error("You need to deploy your contract first");
       return;
@@ -41,19 +38,21 @@ task("faucet", "Sends ETH and tokens to an address")
     const supCoin = await ethers.getContractAt("SupCoin", address.SupCoin);
     const [sender] = await ethers.getSigners();
 
-    const tx = await supCoin.transfer(
+    // Transfert de SUP
+    const supTx = await supCoin.transfer(
       receiver,
       ethers.utils.parseUnits("100", 18)
     );
-    await tx.wait();
+    await supTx.wait();
+    console.log(`Transferred 100 SUP to ${receiver}`);
 
-    const tx2 = await sender.sendTransaction({
+    // Transfert de ETH
+    const ethTx = await sender.sendTransaction({
       to: receiver,
-      value: ethers.utils.parseEther("1"),
+      value: ethers.utils.parseEther("1"), // 1 ETH
     });
-    await tx2.wait();
-
-    console.log(`Transferred 1 ETH and 100 SUP to ${receiver}`);
+    await ethTx.wait();
+    console.log(`Transferred 1 ETH to ${receiver}`);
   });
 
 module.exports = {};

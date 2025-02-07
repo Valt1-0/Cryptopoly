@@ -12,48 +12,88 @@ export const WalletProvider = ({ children }) => {
   const [signer, setSigner] = useState(null);
   const [supCoin, setSupCoin] = useState(null);
   const [resourceToken, setResourceToken] = useState(null);
+  const [isLocal, setIsLocal] = useState(false); // État pour déterminer si nous sommes en mode local
 
   useEffect(() => {
-    if (window.ethereum) {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      setProvider(provider);
-      provider.getSigner().then((signer) => {
-        setSigner(signer);
-        initializeContracts(signer);
-      });
+    let provider;
+
+    if (window.ethereum && false) {
+      // Utilisation de Metamask si disponible
+      provider = new ethers.BrowserProvider(window.ethereum);
+      console.log("Metamask détecté");
+      setIsLocal(false); // Ce n'est pas un environnement local
+    } else {
+      // Sinon, utilisation de Hardhat local
+      provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+      setIsLocal(true); // C'est un environnement local
     }
+
+    setProvider(provider);
+
+    provider
+      .getSigner()
+      .then(async (signer) => {
+        setSigner(signer);
+        await initializeContracts(signer);
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la récupération du signer:", error);
+      });
   }, []);
 
-  useEffect(() => {
-    const storedWallet = localStorage.getItem("wallet");
-    if (storedWallet) {
-      const walletData = JSON.parse(storedWallet);
-      setWallet(walletData);
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      setProvider(provider);
-      provider.getSigner().then((signer) => {
-        setSigner(signer);
-        initializeContracts(signer);
-      });
-    }
-  }, []);
-
-  const initializeContracts = (signer) => {
+  const initializeContracts = async (signer) => {
     const supCoin = new ethers.Contract(
       contractAddress.SupCoin,
       SupCoinArtifact.abi,
       signer
     );
-
     const resourceToken = new ethers.Contract(
       contractAddress.ResourceToken,
       ResourceTokenArtifact.abi,
       signer
     );
-
     setSupCoin(supCoin);
     setResourceToken(resourceToken);
   };
+
+  // Ce useEffect dépend de supCoin pour récupérer la balance
+  useEffect(() => {
+    if (supCoin && signer && !isLocal) {
+      const fetchBalance = async () => {
+        try {
+          let walletAddress = await signer.getAddress();
+          console.log("Adresse du wallet:", walletAddress);
+          if (!walletAddress) {
+            walletAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Remplace par l'adresse de ton compte Hardhat
+          }
+          console.log("Adresse du wallet:", walletAddress);
+          const balance = await supCoin.balanceOf(walletAddress);
+          const network = await provider.getNetwork();
+
+          const walletData = {
+            address: walletAddress,
+            balance: ethers.formatUnits(balance, 18),
+            network: network.name,
+          };
+
+          setWallet(walletData);
+          localStorage.setItem("wallet", JSON.stringify(walletData));
+
+          console.log("Wallet connecté:", walletData);
+        } catch (error) {
+          console.error("Erreur lors de la récupération du solde:", error);
+        }
+      };
+      fetchBalance();
+    } else if (isLocal) {
+      const localWalletData = {
+        address: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8", // Adresse simulée
+        balance: "1000", // Solde fictif
+        network: "localhost",
+      };
+      setWallet(localWalletData);
+    }
+  }, [supCoin, signer, provider, isLocal]);
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -70,19 +110,14 @@ export const WalletProvider = ({ children }) => {
       // Initialisez les contrats SupCoin et ResourceToken
       initializeContracts(signer);
 
-      // Récupérez la balance de SupCoin
-      const balance = await supCoin.balanceOf(address);
-      const network = await provider.getNetwork();
+      setProvider(provider);
+      setSigner(signer);
 
       const walletData = {
         address,
-        balance: ethers.formatUnits(balance, 18),
-        network: network.name,
+        balance: "1000", // Solde fictif, à ajuster si vous êtes en mode local
+        network: "localhost", // Si local
       };
-
-      setWallet(walletData);
-      setProvider(provider);
-      setSigner(signer);
 
       localStorage.setItem("wallet", JSON.stringify(walletData));
 
@@ -120,8 +155,10 @@ export const WalletProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    setupWalletListeners();
-  }, []);
+    if (!isLocal) {
+      setupWalletListeners();
+    }
+  }, [isLocal]);
 
   return (
     <WalletContext.Provider

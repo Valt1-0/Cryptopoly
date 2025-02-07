@@ -3,85 +3,92 @@ import Card from "../components/Card";
 import { useWallet } from "../context/walletContext";
 import { ethers } from "ethers";
 
-const HARDHAT_NETWORK_ID = 31337;
-
-const houses = [
-  {
-    id: 1,
-    title: "Modern Villa",
-    price: 4,
-    imgPath:
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: 2,
-    title: "Cozy Cabin",
-    price: 2,
-    imgPath:
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: 3,
-    title: "Luxury Mansion",
-    price: 7,
-    imgPath:
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-  {
-    id: 4,
-    title: "Train Station",
-    price: 7,
-    imgPath:
-      "https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  },
-];
-
 const Market = () => {
   const [balance, setBalance] = useState("0");
+  const [houses, setHouses] = useState([]);
   const { provider, signer, wallet, supCoin, resourceToken } = useWallet();
 
   useEffect(() => {
-    if (provider && signer && supCoin) {
-      console.log("Setting up contracts with provider and signer");
-      console.log("SupCoin address:", supCoin.target);
-      console.log("ResourceToken address:", resourceToken.target);
-
-      async function fetchBalance() {
-        const balance = await supCoin.balanceOf(wallet?.address);
-        setBalance(ethers.formatUnits(balance, 18));
-        console.log("Account balance:", ethers.formatUnits(balance, 18));
-      }
-
+    if (provider && signer && supCoin && resourceToken) {
+      console.log("✅ Wallet détecté :", wallet?.address);
       fetchBalance();
+      fetchHouses();
     }
-  }, [provider, signer, wallet, supCoin]);
+  }, [provider, signer, wallet, supCoin, resourceToken]);
+
+  const fetchBalance = async () => {
+    try {
+      if (!wallet?.address) return;
+      const balance = await supCoin.balanceOf(wallet.address);
+      setBalance(ethers.formatUnits(balance, 18));
+    } catch (error) {
+      console.error("❌ Erreur lors de la récupération du solde :", error);
+    }
+  };
+
+  const fetchHouses = async () => {
+    try {
+      if (!resourceToken) return;
+      const houseIds = await resourceToken.getAvailableHouses();
+      let availableHouses = [];
+
+      for (let i = 0; i < houseIds.length; i++) {
+        const house = await resourceToken.houses(houseIds[i]);
+        availableHouses.push({
+          id: houseIds[i],
+          title: house.name,
+          price: ethers.formatUnits(house.price, 18),
+          imgPath: house.ipfsHash,
+          available: house.available,
+        });
+      }
+      setHouses(availableHouses);
+    } catch (error) {
+      console.error("❌ Erreur lors de la récupération des maisons :", error);
+    }
+  };
 
   const buyNFT = async (house) => {
     try {
-      if (!wallet?.address) {
-        throw new Error("Account is not defined");
-      }
-      if (!supCoin || !resourceToken) {
-        throw new Error("Contracts are not initialized");
-      }
-      console.log("Starting NFT purchase for house:", house);
+      if (!wallet?.address) throw new Error("❌ Wallet non connecté.");
+      if (!supCoin || !resourceToken)
+        throw new Error("❌ Contrats non initialisés.");
+
+      console.log(`🔹 Achat en cours pour : ${house.title}`);
       const value = ethers.parseUnits(house.price.toString(), 18);
-      console.log("Approving SupCoin transfer", value, resourceToken.target);
-      await supCoin.approve(resourceToken.target, value);
-      console.log("Minting resource token");
-      const tx = await resourceToken.mintResource(
-        wallet?.address,
-        house.title,
-        "House",
-        value,
-        house.imgPath // Use imgPath as IPFS hash for simplicity
+
+      console.log(
+        "🔹 Approvisionnement nécessaire de :",
+        value.toString(),
+        "SUP"
       );
-      await tx.wait();
-      console.log("NFT purchased successfully!");
-      alert("NFT purchased successfully!");
+      const gasPrice = await provider.send("eth_gasPrice", []);
+      console.log("⛽ Gas Price:", ethers.formatUnits(gasPrice, "gwei"));
+
+      // Étape 1 : Approuver le transfert de SUP
+      console.log("🔹 Approbation en cours...");
+      const tx1 = await supCoin.approve(resourceToken.target, value, {
+        gasLimit: 500000,
+        gasPrice: gasPrice,
+      });
+      await tx1.wait();
+      console.log("✅ Approbation confirmée.");
+
+      // Étape 2 : Acheter le NFT
+      console.log("🔹 Achat du NFT en cours...");
+      const tx2 = await resourceToken.purchaseHouse(house.id, {
+        gasLimit: 500000,
+        gasPrice: gasPrice,
+      });
+      await tx2.wait();
+      console.log("✅ NFT acheté avec succès !");
+
+      alert("🎉 NFT acheté avec succès !");
+      fetchBalance(); // Actualiser le solde après l'achat
+      fetchHouses(); // Actualiser la liste des maisons disponibles
     } catch (error) {
-      console.error("Error purchasing NFT:", error);
-      alert("Error purchasing NFT. Check console for details.");
+      console.error("❌ Erreur lors de l'achat du NFT :", error);
+      alert("Erreur lors de l'achat. Détails en console.");
     }
   };
 
@@ -96,7 +103,7 @@ const Market = () => {
           price={house.price}
           imgPath={house.imgPath}
           handleBuy={() => buyNFT(house)}
-        ></Card>
+        />
       ))}
     </div>
   );
