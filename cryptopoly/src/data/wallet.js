@@ -13,10 +13,6 @@ async function connectWallet(setWallet) {
     const balance = await provider.getBalance(address);
     const network = await provider.getNetwork();
 
-    console.log("Adresse :", address);
-    console.log("Solde :", ethers.formatEther(balance), "ETH");
-    console.log("Réseau :", network.name, `(Chain ID: ${network.chainId})`);
-
     setWallet({
       address,
       balance: ethers.formatEther(balance),
@@ -32,7 +28,6 @@ async function connectWallet(setWallet) {
 
 async function disconnectWallet(setWallet) {
   setWallet(null);
-  console.log("Wallet déconnecté");
 }
 
 function setupWalletListeners(setWallet) {
@@ -40,10 +35,8 @@ function setupWalletListeners(setWallet) {
 
   window.ethereum.on("accountsChanged", async (accounts) => {
     if (accounts.length > 0) {
-      console.log("Changement de compte :", accounts[0]);
       await connectWallet(setWallet);
     } else {
-      console.log("Compte déconnecté");
       disconnectWallet(setWallet);
     }
   });

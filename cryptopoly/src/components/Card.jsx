@@ -1,29 +1,17 @@
-import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
 import { FaEthereum } from "react-icons/fa";
 
-const Model = ({ modelPath }) => {
-  const { scene } = useGLTF(modelPath);
-  return <primitive object={scene} scale={1.2} />;
-};
-
-const Card = ({ title, modelPath, price }) => {
+const Card = ({ title, imgPath, price }) => {
   return (
-    <div className="relative w-96 h-56 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:rotate-1">
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/70 to-gray-800/90 opacity-95 rounded-xl border border-gray-700" />
-
-      {/* 3D Model */}
-      <Canvas className="w-full h-full" camera={{ position: [0, 1.5, 4], fov: 50 }}>
-        <ambientLight intensity={1.5} />
-        <directionalLight position={[2, 5, 3]} intensity={2} />
-        <pointLight position={[-2, -2, -2]} intensity={1} />
-        <spotLight position={[0, 5, 0]} angle={0.6} intensity={2} castShadow />
-        <Model modelPath={modelPath} />
-        <OrbitControls enableZoom={false} />
-      </Canvas>
-
+    <div className="relative w-96 h-56 bg-white/10 border border-white/20 rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-105">
+      <div className="absolute top-0 left-0 w-full h-full bg-white/20 rounded-xl shadow-md" />
+      {/* Image */}
+      <img
+        src={imgPath}
+        alt={title}
+        className="w-full h-full object-cover rounded-xl"
+      />
       {/* Card Content */}
-      <div className="absolute bottom-0 w-full p-3 bg-black/40 backdrop-blur-md flex justify-between items-center">
+      <div className="absolute bottom-0 w-full p-3 bg-black/30 backdrop-blur-md flex justify-between items-center">
         <div>
           <h3 className="text-lg font-bold text-white">{title}</h3>
           <p className="text-sm text-gray-300 flex items-center gap-1">
@@ -37,5 +25,4 @@ const Card = ({ title, modelPath, price }) => {
     </div>
   );
 };
-
 export default Card;
