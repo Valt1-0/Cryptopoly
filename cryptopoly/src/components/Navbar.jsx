@@ -110,7 +110,10 @@ const Navbar = () => {
           </span>
 
           {/* Bouton Déconnexion */}
-          <button className="btn btn-secondary" onClick={handleDisconnect}>
+          <button
+            className="btn btn-secondary hover:text-accent"
+            onClick={handleDisconnect}
+          >
             Déconnecter
           </button>
         </div>
