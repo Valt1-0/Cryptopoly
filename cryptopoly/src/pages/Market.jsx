@@ -41,10 +41,15 @@ const Market = () => {
 
   useEffect(() => {
     async function fetchAccount() {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      setAccount(accounts[0]);
+      try {
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        setAccount(accounts[0]);
+        console.log("Account fetched:", accounts[0]);
+      } catch (error) {
+        console.error("Error fetching account:", error);
+      }
     }
 
     fetchAccount();
@@ -52,22 +57,38 @@ const Market = () => {
 
   useEffect(() => {
     if (provider && signer) {
+      console.log("Setting up contracts with provider and signer");
       setupContracts(provider, signer);
     }
   }, [provider, signer]);
 
   const buyNFT = async (house) => {
-    const value = ethers.utils.parseUnits(house.price.toString(), 18);
-    await supCoin.approve(resourceToken.address, value);
-    const tx = await resourceToken.mintResource(
-      account,
-      house.title,
-      "House",
-      value,
-      house.imgPath // Use imgPath as IPFS hash for simplicity
-    );
-    await tx.wait();
-    alert("NFT purchased successfully!");
+    try {
+      if (!account) {
+        throw new Error("Account is not defined");
+      }
+      if (!supCoin || !resourceToken) {
+        throw new Error("Contracts are not initialized");
+      }
+      console.log("Starting NFT purchase for house:", house);
+      const value = ethers.parseUnits(house.price.toString(), 18);
+      console.log("Approving SupCoin transfer", value, resourceToken.target);
+      await supCoin.approve(resourceToken.target, value);
+      console.log("Minting resource token");
+      const tx = await resourceToken.mintResource(
+        account,
+        house.title,
+        "House",
+        value,
+        house.imgPath // Use imgPath as IPFS hash for simplicity
+      );
+      await tx.wait();
+      console.log("NFT purchased successfully!");
+      alert("NFT purchased successfully!");
+    } catch (error) {
+      console.error("Error purchasing NFT:", error);
+      alert("Error purchasing NFT. Check console for details.");
+    }
   };
 
   return (
@@ -78,14 +99,8 @@ const Market = () => {
           title={house.title}
           price={house.price}
           imgPath={house.imgPath}
-        >
-          <button
-            onClick={() => buyNFT(house)}
-            className="btn btn-accent transition-transform duration-300 hover:scale-110 mt-4"
-          >
-            Buy NFT
-          </button>
-        </Card>
+          handleBuy={() => buyNFT(house)}
+        ></Card>
       ))}
     </div>
   );

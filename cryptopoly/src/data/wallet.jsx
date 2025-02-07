@@ -16,6 +16,17 @@ export const WalletProvider = ({ children }) => {
     }
   }, []);
 
+  useEffect(() => {
+    const storedWallet = localStorage.getItem("wallet");
+    if (storedWallet) {
+      const walletData = JSON.parse(storedWallet);
+      setWallet(walletData);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(provider);
+      provider.getSigner().then((signer) => setSigner(signer));
+    }
+  }, []);
+
   const connectWallet = async () => {
     if (!window.ethereum) {
       alert("MetaMask n'est pas installé !");
@@ -29,15 +40,17 @@ export const WalletProvider = ({ children }) => {
       const balance = await provider.getBalance(address);
       const network = await provider.getNetwork();
 
-      setWallet({
+      const walletData = {
         address,
         balance: ethers.formatEther(balance),
         network: network.name,
-        provider,
-      });
+      };
 
+      setWallet(walletData);
       setProvider(provider);
       setSigner(signer);
+
+      localStorage.setItem("wallet", JSON.stringify(walletData));
 
       return address;
     } catch (error) {
@@ -49,6 +62,7 @@ export const WalletProvider = ({ children }) => {
     setWallet(null);
     setProvider(null);
     setSigner(null);
+    localStorage.removeItem("wallet");
   };
 
   const setupWalletListeners = () => {

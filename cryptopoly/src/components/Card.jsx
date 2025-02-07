@@ -1,6 +1,6 @@
 import { FaEthereum } from "react-icons/fa";
 
-const Card = ({ title, imgPath, price }) => {
+const Card = ({ title, imgPath, price,handleBuy }) => {
   return (
     <div className="relative w-96 h-56 bg-white/10 border border-white/20 rounded-xl shadow-lg overflow-hidden transition-all duration-300 transform hover:scale-105">
       <div className="absolute top-0 left-0 w-full h-full bg-white/20 rounded-xl shadow-md" />
@@ -18,7 +18,7 @@ const Card = ({ title, imgPath, price }) => {
             <FaEthereum className="text-blue-400 text-lg" /> {price} ETH
           </p>
         </div>
-        <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-500 hover:to-blue-400 text-white font-semibold rounded-lg transition-all">
+        <button onClick={handleBuy} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-500 hover:to-blue-400 text-white font-semibold rounded-lg transition-all">
           Buy
         </button>
       </div>

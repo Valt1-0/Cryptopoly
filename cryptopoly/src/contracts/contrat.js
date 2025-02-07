@@ -19,6 +19,9 @@ const setupContracts = (provider, signer) => {
       ResourceTokenArtifact.abi,
       signer
     );
+
+    console.log("SupCoin address:", supCoin.target);
+    console.log("ResourceToken address:", resourceToken);
   } else {
     console.error("Provider or signer not found. Please connect your wallet.");
   }
