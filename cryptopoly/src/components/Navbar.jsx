@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { useWallet } from "../data/wallet";
+import { useWallet } from "../context/walletContext";
+import { motion } from "framer-motion";
 
 import * as FAIcons from "react-icons/fa";
 import * as SIIcons from "react-icons/si";
+import { Link } from "react-router-dom";
 
 const networkDetails = {
   homestead: {
@@ -10,20 +12,10 @@ const networkDetails = {
     icon: <FAIcons.FaEthereum className="text-blue-400" />,
     token: "ETH",
   },
-  goerli: {
-    name: "Goerli Testnet",
-    icon: <FAIcons.FaEthereum className="text-blue-400" />,
-    token: "ETH",
-  },
   sepolia: {
     name: "Sepolia Testnet",
     icon: <FAIcons.FaEthereum className="text-blue-400" />,
     token: "ETH",
-  },
-  polygon: {
-    name: "Polygon",
-    icon: <SIIcons.SiPolygon className="text-purple-400" />,
-    token: "MATIC",
   },
   "bnb-smart-chain": {
     name: "Binance Smart Chain",
@@ -34,14 +26,29 @@ const networkDetails = {
 
 const Navbar = () => {
   const [copied, setCopied] = useState(false);
-  const [token, setToken] = useState("ETH"); // Par défaut ETH
+  const [token, setToken] = useState("ETH");
   const { connectWallet, disconnectWallet, wallet } = useWallet();
+  const [animatedAddress, setAnimatedAddress] = useState("");
 
   useEffect(() => {
     if (wallet?.network && networkDetails[wallet.network]) {
       setToken(networkDetails[wallet.network].token);
     }
   }, [wallet]);
+
+  useEffect(() => {
+    if (wallet?.address) {
+      let i = 0;
+      const interval = setInterval(() => {
+        setAnimatedAddress(wallet.address.slice(0, i + 1));
+        i++;
+        if (i > wallet.address.length) clearInterval(interval);
+      }, 50);
+      return () => clearInterval(interval);
+    } else {
+      setAnimatedAddress("");
+    }
+  }, [wallet?.address]);
 
   const copyToClipboard = async () => {
     if (wallet?.address) {
@@ -68,14 +75,20 @@ const Navbar = () => {
 
   return (
     <div className="navbar bg-background-light text-primary-content border-b border-border-dark px-6 py-3 flex items-center justify-between">
-      <a className="text-xl font-bold text-accent">CRYPTOPOLY</a>
-
+      <Link to="/" className="text-xl font-bold text-accent">
+        CRYPTOPOLY
+      </Link>
       {wallet ? (
-        <div className="flex items-center gap-4">
-          {/* Adresse du Wallet */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-4"
+        >
+          {/* Adresse du Wallet avec animation typing */}
           <div className="flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-full text-white">
             <span className="text-sm">
-              {wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}
+              {animatedAddress.slice(0, 6)}...{wallet.address.slice(-4)}
             </span>
             <button
               onClick={copyToClipboard}
@@ -89,31 +102,41 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* Solde du Wallet */}
-          <div className="flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full text-white">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full text-white"
+          >
             {networkDetails[wallet.network]?.icon || <FAIcons.FaEthereum />}
             <span className="text-sm">
               {parseFloat(wallet.balance).toFixed(4)} {token}
             </span>
-          </div>
+          </motion.div>
 
-          {/* Réseau */}
-          <span className="text-sm flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full text-white">
+          <motion.span
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-sm flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full text-white"
+          >
             {networkDetails[wallet.network]?.icon}
             {networkDetails[wallet.network]?.name || "Inconnu"}
-          </span>
+          </motion.span>
 
-          {/* Bouton Déconnexion */}
-          <button
-            className="btn btn-secondary hover:text-accent"
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="btn btn-secondary hover:text-accent text-xs w-24"
             onClick={handleDisconnect}
           >
-            Déconnecter
-          </button>
-        </div>
+            Disconnect
+          </motion.button>
+        </motion.div>
       ) : (
         <button className="btn btn-accent" onClick={handleConnect}>
-          Connecter MetaMask
+          Connect to MetaMask
         </button>
       )}
     </div>

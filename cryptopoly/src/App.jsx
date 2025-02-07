@@ -6,19 +6,19 @@ import Home from "./pages/Home";
 import Market from "./pages/Market";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
-import { WalletProvider } from "./data/wallet";
+import { WalletProvider } from "./context/walletContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <WalletProvider>
-      <Navbar />
       <Router>
+        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/market" element={<Market />} />
         </Routes>
+        <Footer />
       </Router>
-      <Footer />
     </WalletProvider>
   </StrictMode>
 );
