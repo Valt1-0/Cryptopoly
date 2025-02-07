@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { ethers } from "ethers";
 import SupCoinArtifact from "../contracts/SupCoin.json";
+import ResourceTokenArtifact from "../contracts/ResourceToken.json";
 import contractAddress from "../contracts/contract-address.json";
 
 const WalletContext = createContext();
@@ -9,12 +10,17 @@ export const WalletProvider = ({ children }) => {
   const [wallet, setWallet] = useState(null);
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
+  const [supCoin, setSupCoin] = useState(null);
+  const [resourceToken, setResourceToken] = useState(null);
 
   useEffect(() => {
     if (window.ethereum) {
       const provider = new ethers.BrowserProvider(window.ethereum);
       setProvider(provider);
-      provider.getSigner().then((signer) => setSigner(signer));
+      provider.getSigner().then((signer) => {
+        setSigner(signer);
+        initializeContracts(signer);
+      });
     }
   }, []);
 
@@ -25,9 +31,29 @@ export const WalletProvider = ({ children }) => {
       setWallet(walletData);
       const provider = new ethers.BrowserProvider(window.ethereum);
       setProvider(provider);
-      provider.getSigner().then((signer) => setSigner(signer));
+      provider.getSigner().then((signer) => {
+        setSigner(signer);
+        initializeContracts(signer);
+      });
     }
   }, []);
+
+  const initializeContracts = (signer) => {
+    const supCoin = new ethers.Contract(
+      contractAddress.SupCoin,
+      SupCoinArtifact.abi,
+      signer
+    );
+
+    const resourceToken = new ethers.Contract(
+      contractAddress.ResourceToken,
+      ResourceTokenArtifact.abi,
+      signer
+    );
+
+    setSupCoin(supCoin);
+    setResourceToken(resourceToken);
+  };
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -36,16 +62,13 @@ export const WalletProvider = ({ children }) => {
     }
 
     try {
+      console.log("Requesting accounts...");
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
 
-      // Initialisez le contrat SupCoin
-      const supCoin = new ethers.Contract(
-        contractAddress.SupCoin,
-        SupCoinArtifact.abi,
-        signer
-      );
+      // Initialisez les contrats SupCoin et ResourceToken
+      initializeContracts(signer);
 
       // Récupérez la balance de SupCoin
       const balance = await supCoin.balanceOf(address);
@@ -63,6 +86,7 @@ export const WalletProvider = ({ children }) => {
 
       localStorage.setItem("wallet", JSON.stringify(walletData));
 
+      console.log("Wallet connected:", walletData);
       return address;
     } catch (error) {
       console.error("Erreur de connexion :", error);
@@ -73,6 +97,8 @@ export const WalletProvider = ({ children }) => {
     setWallet(null);
     setProvider(null);
     setSigner(null);
+    setSupCoin(null);
+    setResourceToken(null);
     localStorage.removeItem("wallet");
   };
 
@@ -99,7 +125,15 @@ export const WalletProvider = ({ children }) => {
 
   return (
     <WalletContext.Provider
-      value={{ wallet, connectWallet, disconnectWallet, provider, signer }}
+      value={{
+        wallet,
+        connectWallet,
+        disconnectWallet,
+        provider,
+        signer,
+        supCoin,
+        resourceToken,
+      }}
     >
       {children}
     </WalletContext.Provider>
