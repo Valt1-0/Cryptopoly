@@ -37,13 +37,16 @@ const houses = [
 
 const Market = () => {
   const [account, setAccount] = useState("");
-  const { provider, signer } = useWallet();
+  const [balance, setBalance] = useState("0");
+  const { provider, signer, wallet } = useWallet();
 
   useEffect(() => {
     async function fetchAccount() {
       try {
+        const chainIdHex = `0x${HARDHAT_NETWORK_ID.toString(16)}`;
         const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: chainIdHex }],
         });
         setAccount(accounts[0]);
         console.log("Account fetched:", accounts[0]);
@@ -59,24 +62,38 @@ const Market = () => {
     if (provider && signer) {
       console.log("Setting up contracts with provider and signer");
       setupContracts(provider, signer);
+      console.log("SupCoin address:", supCoin.target);
+      console.log("ResourceToken address:", resourceToken.target);
+
+      async function fetchBalance() {
+        const balance = await supCoin.balanceOf(account);
+        setBalance(ethers.formatUnits(balance, 18));
+        console.log("Account balance:", ethers.formatUnits(balance, 18));
+      }
+
+      fetchBalance();
     }
-  }, [provider, signer]);
+  }, [provider, signer, account]);
 
   const buyNFT = async (house) => {
     try {
-      if (!account) {
+      if (!wallet?.address) {
         throw new Error("Account is not defined");
       }
       if (!supCoin || !resourceToken) {
         throw new Error("Contracts are not initialized");
       }
+      console.log("Buying NFT for house:", resourceToken);
       console.log("Starting NFT purchase for house:", house);
       const value = ethers.parseUnits(house.price.toString(), 18);
       console.log("Approving SupCoin transfer", value, resourceToken.target);
-      await supCoin.approve(resourceToken.target, value);
+      const approveTx = await supCoin.approve(resourceToken.target, value);
+      await approveTx.wait();
+      console.log("Approval confirmed");
+
       console.log("Minting resource token");
       const tx = await resourceToken.mintResource(
-        account,
+        wallet?.address,
         house.title,
         "House",
         value,
@@ -93,6 +110,8 @@ const Market = () => {
 
   return (
     <div className="bg-background-light flex flex-wrap gap-6 justify-center p-6">
+      <div>Account: {account}</div>
+      <div>Balance: {balance} SUP</div>
       {houses.map((house) => (
         <Card
           key={house.id}

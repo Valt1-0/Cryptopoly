@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { ethers } from "ethers";
+import SupCoinArtifact from "../contracts/SupCoin.json";
+import contractAddress from "../contracts/contract-address.json";
 
 const WalletContext = createContext();
 
@@ -37,12 +39,21 @@ export const WalletProvider = ({ children }) => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
-      const balance = await provider.getBalance(address);
+
+      // Initialisez le contrat SupCoin
+      const supCoin = new ethers.Contract(
+        contractAddress.SupCoin,
+        SupCoinArtifact.abi,
+        signer
+      );
+
+      // Récupérez la balance de SupCoin
+      const balance = await supCoin.balanceOf(address);
       const network = await provider.getNetwork();
 
       const walletData = {
         address,
-        balance: ethers.formatEther(balance),
+        balance: ethers.formatUnits(balance, 18),
         network: network.name,
       };
 
