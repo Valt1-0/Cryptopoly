@@ -1,13 +1,27 @@
 import { ethers } from "ethers";
+import SupCoinArtifact from "./SupCoin.json";
 import ResourceTokenArtifact from "./ResourceToken.json";
 import contractAddress from "./contract-address.json";
 
-const provider = new ethers.providers.Web3Provider(window.ethereum);
-const signer = provider.getSigner();
-const resourceToken = new ethers.Contract(
-  contractAddress.ResourceToken,
-  ResourceTokenArtifact.abi,
-  signer
-);
+let supCoin;
+let resourceToken;
 
-export default resourceToken;
+const setupContracts = (provider, signer) => {
+  if (provider && signer) {
+    supCoin = new ethers.Contract(
+      contractAddress.SupCoin,
+      SupCoinArtifact.abi,
+      signer
+    );
+
+    resourceToken = new ethers.Contract(
+      contractAddress.ResourceToken,
+      ResourceTokenArtifact.abi,
+      signer
+    );
+  } else {
+    console.error("Provider or signer not found. Please connect your wallet.");
+  }
+};
+
+export { setupContracts, supCoin, resourceToken };

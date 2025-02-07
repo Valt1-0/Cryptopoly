@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  connectWallet,
-  disconnectWallet,
-  setupWalletListeners,
-} from "../data/wallet";
+import { useWallet } from "../data/wallet";
+
 import * as FAIcons from "react-icons/fa";
 import * as SIIcons from "react-icons/si";
 
@@ -36,13 +33,9 @@ const networkDetails = {
 };
 
 const Navbar = () => {
-  const [wallet, setWallet] = useState(null);
   const [copied, setCopied] = useState(false);
   const [token, setToken] = useState("ETH"); // Par défaut ETH
-
-  useEffect(() => {
-    setupWalletListeners(setWallet);
-  }, []);
+  const { connectWallet, disconnectWallet, wallet } = useWallet();
 
   useEffect(() => {
     if (wallet?.network && networkDetails[wallet.network]) {
@@ -59,17 +52,18 @@ const Navbar = () => {
   };
 
   const handleConnect = async () => {
-    const address = await connectWallet(setWallet);
-    if (address) {
-      setWallet((prevWallet) => ({
-        ...prevWallet,
-        address,
-      }));
-    }
+    // const address = await connectWallet(setWallet);
+    // if (address) {
+    //   setWallet((prevWallet) => ({
+    //     ...prevWallet,
+    //     address,
+    //   }));
+    // }
+    await connectWallet();
   };
 
   const handleDisconnect = () => {
-    disconnectWallet(setWallet);
+    disconnectWallet();
   };
 
   return (

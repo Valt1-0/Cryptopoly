@@ -3,9 +3,11 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract ResourceToken is ERC721URIStorage {
     uint256 private _tokenIds;
+    IERC20 private supCoin;
 
     struct Resource {
         string name;
@@ -19,8 +21,9 @@ contract ResourceToken is ERC721URIStorage {
 
     mapping(uint256 => Resource) public resources;
 
-    constructor() ERC721("ResourceToken", "RST") {
+    constructor(address supCoinAddress) ERC721("ResourceToken", "RST") {
         _tokenIds = 0;
+        supCoin = IERC20(supCoinAddress);
     }
 
     function mintResource(
@@ -30,6 +33,8 @@ contract ResourceToken is ERC721URIStorage {
         uint256 value,
         string memory ipfsHash
     ) public returns (uint256) {
+        require(supCoin.transferFrom(msg.sender, address(this), value), "Payment failed");
+
         _tokenIds += 1;
         uint256 newItemId = _tokenIds;
         _mint(to, newItemId);
