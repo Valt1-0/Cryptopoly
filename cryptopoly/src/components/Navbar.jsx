@@ -22,6 +22,11 @@ const networkDetails = {
     icon: <SIIcons.SiBinance className="text-yellow-400" />,
     token: "BNB",
   },
+  supcoin: {
+    name: "SupCoin",
+    icon: <SIIcons.SiEthereum className="text-green-400" />,
+    token: "SUP",
+  },
 };
 
 const Navbar = () => {
