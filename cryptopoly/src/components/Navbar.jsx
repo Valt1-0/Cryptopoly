@@ -38,6 +38,7 @@ const Navbar = () => {
   useEffect(() => {
     if (wallet?.network && networkDetails[wallet.network]) {
       setToken(networkDetails[wallet.network].token);
+      console.log("Token:", networkDetails[wallet.network].token);
     }
   }, [wallet]);
 

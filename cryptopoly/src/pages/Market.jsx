@@ -39,71 +39,76 @@ const houses = [
 
 const Market = () => {
   const [account, setAccount] = useState("");
-  const { provider, signer } = useWallet();
+  const [balance, setBalance] = useState("0");
+  const { provider, signer, wallet } = useWallet();
 
-  // useEffect(() => {
-  //   async function fetchAccount() {
-  //     try {
-  //       const accounts = await window.ethereum.request({
-  //         method: "eth_requestAccounts",
-  //       });
-  //       setAccount(accounts[0]);
-  //       console.log("Account fetched:", accounts[0]);
-  //     } catch (error) {
-  //       console.error("Error fetching account:", error);
-  //     }
-  //   }
+  useEffect(() => {
+    async function fetchAccount() {
+      try {
+        const chainIdHex = `0x${HARDHAT_NETWORK_ID.toString(16)}`;
+        const accounts = await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: chainIdHex }],
+        });
+        setAccount(accounts[0]);
+        console.log("Account fetched:", accounts[0]);
+      } catch (error) {
+        console.error("Error fetching account:", error);
+      }
+    }
 
   //   fetchAccount();
   // }, []);
 
-  // useEffect(() => {
-  //   if (provider && signer) {
-  //     console.log("Setting up contracts with provider and signer");
-  //     setupContracts(provider, signer);
-  //   }
-  // }, [provider, signer]);
+  useEffect(() => {
+    if (provider && signer) {
+      console.log("Setting up contracts with provider and signer");
+      setupContracts(provider, signer);
+      console.log("SupCoin address:", supCoin.target);
+      console.log("ResourceToken address:", resourceToken.target);
 
-  // const buyNFT = async (house) => {
-  //   try {
-  //     if (!account) {
-  //       throw new Error("Account is not defined");
-  //     }
-  //     if (!supCoin || !resourceToken) {
-  //       throw new Error("Contracts are not initialized");
-  //     }
-  //     console.log("Starting NFT purchase for house:", house);
-  //     const value = ethers.parseUnits(house.price.toString(), 18);
-  //     console.log("Approving SupCoin transfer", value, resourceToken.target);
-  //     await supCoin.approve(resourceToken.target, value);
-  //     console.log("Minting resource token");
-  //     const tx = await resourceToken.mintResource(
-  //       account,
-  //       house.title,
-  //       "House",
-  //       value,
-  //       house.imgPath // Use imgPath as IPFS hash for simplicity
-  //     );
-  //     await tx.wait();
-  //     console.log("NFT purchased successfully!");
-  //     alert("NFT purchased successfully!");
-  //   } catch (error) {
-  //     console.error("Error purchasing NFT:", error);
-  //     alert("Error purchasing NFT. Check console for details.");
-  //   }
-  // };
+      async function fetchBalance() {
+        const balance = await supCoin.balanceOf(account);
+        setBalance(ethers.formatUnits(balance, 18));
+        console.log("Account balance:", ethers.formatUnits(balance, 18));
+      }
 
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
+      fetchBalance();
+    }
+  }, [provider, signer, account]);
 
-  // Filtrage et recherche
-  const filteredHouses = houses
-    .filter((house) => house.title.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => {
-      if (filter === "cheap") return a.price - b.price;
-      if (filter === "expensive") return b.price - a.price;
-      return 0;
-    });
+  const buyNFT = async (house) => {
+    try {
+      if (!wallet?.address) {
+        throw new Error("Account is not defined");
+      }
+      if (!supCoin || !resourceToken) {
+        throw new Error("Contracts are not initialized");
+      }
+      console.log("Buying NFT for house:", resourceToken);
+      console.log("Starting NFT purchase for house:", house);
+      const value = ethers.parseUnits(house.price.toString(), 18);
+      console.log("Approving SupCoin transfer", value, resourceToken.target);
+      const approveTx = await supCoin.approve(resourceToken.target, value);
+      await approveTx.wait();
+      console.log("Approval confirmed");
+
+      console.log("Minting resource token");
+      const tx = await resourceToken.mintResource(
+        wallet?.address,
+        house.title,
+        "House",
+        value,
+        house.imgPath // Use imgPath as IPFS hash for simplicity
+      );
+      await tx.wait();
+      console.log("NFT purchased successfully!");
+      alert("NFT purchased successfully!");
+    } catch (error) {
+      console.error("Error purchasing NFT:", error);
+      alert("Error purchasing NFT. Check console for details.");
+    }
+  };
 
   return (
     <div className="p-8 bg-gradient-to-b from-background-light via-gray-900 to-background-light min-h-screen text-white">
@@ -129,6 +134,8 @@ const Market = () => {
         transition={{ delay: 0.2, duration: 0.5 }}
         className="flex flex-col md:flex-row justify-center items-center gap-4 mt-6"
       >
+      <div>Account: {account}</div>
+      <div>Balance: {balance} SUP</div>
         <input
           type="text"
           placeholder="🔍 Search for a property ... "

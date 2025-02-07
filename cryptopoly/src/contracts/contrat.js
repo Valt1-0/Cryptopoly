@@ -8,6 +8,11 @@ let resourceToken;
 
 const setupContracts = (provider, signer) => {
   if (provider && signer) {
+    console.log("Setting up contracts with provider and signer");
+    console.log("SupCoin address:", contractAddress.SupCoin);
+    console.log("ResourceToken address:", contractAddress.ResourceToken);
+    console.log("Signer address:", signer);
+    console.log("abi", SupCoinArtifact.abi);
     supCoin = new ethers.Contract(
       contractAddress.SupCoin,
       SupCoinArtifact.abi,
