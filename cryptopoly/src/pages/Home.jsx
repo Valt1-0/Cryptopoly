@@ -4,72 +4,8 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 const Home = () => {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 1,
-    hours: 1,
-    minutes: 1,
-    seconds: 59,
-  });
-
-  useEffect(() => {
-    const countdownInterval = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        const { days, hours, minutes, seconds } = prevTime;
-
-        if (seconds > 0) {
-          return { ...prevTime, seconds: seconds - 1 };
-        } else if (minutes > 0) {
-          return { days, hours, minutes: minutes - 1, seconds: 59 };
-        } else if (hours > 0) {
-          return { days, hours: hours - 1, minutes: 59, seconds: 59 };
-        } else if (days > 0) {
-          return { days: days - 1, hours: 23, minutes: 59, seconds: 59 };
-        } else {
-          clearInterval(countdownInterval);
-          return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-        }
-      });
-    }, 1000);
-
-    return () => clearInterval(countdownInterval);
-  }, []);
-
   return (
     <div className="text-white min-h-screen">
-      {/* Countdown Offer Banner */}
-      <div className="bg-black text-white h-16 flex flex-col items-center justify-center">
-        <p className="text-sm font-medium tracking-wide mb-1">
-          Hurry up! Offer expires soon:
-        </p>
-        <div className="flex gap-6 text-sm font-medium">
-          <div className="flex flex-col items-center">
-            <span className="countdown font-mono text-xl">
-              <span style={{ "--value": timeLeft.days }}></span>
-            </span>
-            <span className="text-xs mt-1 uppercase">Days</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="countdown font-mono text-xl">
-              <span style={{ "--value": timeLeft.hours }}></span>
-            </span>
-            <span className="text-xs mt-1 uppercase">Hours</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="countdown font-mono text-xl">
-              <span style={{ "--value": timeLeft.minutes }}></span>
-            </span>
-            <span className="text-xs mt-1 uppercase">Minutes</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="countdown font-mono text-xl">
-              <span style={{ "--value": timeLeft.seconds }}></span>
-            </span>
-            <span className="text-xs mt-1 uppercase">Seconds</span>
-          </div>
-        </div>
-      </div>
-
-      <Navbar />
 
       {/* Hero Section with Animated Blobs */}
       <div className="hero relative min-h-screen bg-background-light overflow-hidden flex items-center justify-center">
