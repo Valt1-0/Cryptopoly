@@ -1,5 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("./task/faucet");
+require("./task/createHouses.js"); 
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {

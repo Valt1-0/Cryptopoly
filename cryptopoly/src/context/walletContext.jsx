@@ -17,7 +17,7 @@ export const WalletProvider = ({ children }) => {
   useEffect(() => {
     let provider;
 
-    if (window.ethereum && false) {
+    if (window.ethereum ) {
       // Utilisation de Metamask si disponible
       provider = new ethers.BrowserProvider(window.ethereum);
       console.log("Metamask détecté");
