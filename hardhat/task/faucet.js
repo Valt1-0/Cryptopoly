@@ -49,10 +49,10 @@ task("faucet", "Sends ETH and tokens to an address")
     // Transfert de ETH
     const ethTx = await sender.sendTransaction({
       to: receiver,
-      value: ethers.utils.parseEther("1"), // 1 ETH
+      value: ethers.utils.parseEther("100"), // 1 ETH
     });
     await ethTx.wait();
-    console.log(`Transferred 1 ETH to ${receiver}`);
+    console.log(`Transferred 100 ETH to ${receiver}`);
   });
 
 module.exports = {};

@@ -68,7 +68,7 @@ const Market = () => {
       // Étape 1 : Approuver le transfert de SUP
       console.log("🔹 Approbation en cours...");
       const tx1 = await supCoin.approve(resourceToken.target, value, {
-        gasLimit: 500000,
+        gasLimit: 5000000,
         gasPrice: gasPrice,
       });
       await tx1.wait();
@@ -77,7 +77,7 @@ const Market = () => {
       // Étape 2 : Acheter le NFT
       console.log("🔹 Achat du NFT en cours...");
       const tx2 = await resourceToken.purchaseHouse(house.id, {
-        gasLimit: 500000,
+        gasLimit: 5000000,
         gasPrice: gasPrice,
       });
       await tx2.wait();
