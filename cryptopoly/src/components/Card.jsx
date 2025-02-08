@@ -26,12 +26,14 @@ const Card = ({ title, imgPath, price, handleBuy }) => {
         </div>
 
         {/* Bouton Buy */}
-        <button
-          onClick={handleBuy}
-          className="px-4 py-2 bg-gradient-to-r from-accent to-blue-400 hover:from-purple-400 hover:to-accent text-white font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
-        >
-          Buy
-        </button>
+        {handleBuy && (
+          <button
+            onClick={handleBuy}
+            className="px-4 py-2 bg-gradient-to-r from-accent to-blue-400 hover:from-purple-400 hover:to-accent text-white font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+            Buy
+          </button>
+        )}
       </div>
     </div>
   );

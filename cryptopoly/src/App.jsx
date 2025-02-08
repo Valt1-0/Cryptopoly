@@ -8,6 +8,7 @@ import AddHouse from "./pages/addHouse";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import { WalletProvider } from "./context/walletContext";
+import Profile from "./pages/Profile";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -18,6 +19,7 @@ createRoot(document.getElementById("root")).render(
           <Route path="/" element={<Home />} />
           <Route path="/market" element={<Market />} />
           <Route path="/add-house" element={<AddHouse />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
         <Footer />
       </Router>
