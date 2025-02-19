@@ -8,52 +8,33 @@ export const pinata = new PinataSDK({
 
 export const uploadToIPFS = async (file, data) => {
   try {
-    // Récupération du timestamp actuel
+    const group = await pinata.groups.create({
+      name: Math.random().toString(36).substring(2, 12),
+    });
+
+    const upload = await pinata.upload.file(file, {
+      groupId: group.id,
+    });
+
     const timestamp = Math.floor(Date.now() / 1000);
 
     // Construction des métadonnées avec le CID du fichier
-    // const metadata = {
-    //   name: data.name,
-    //   type: data.type,
-    //   description: data.description,
-    //   owner: owner,
-    //   previousOwners: [],
-    //   createdAt: timestamp,
-    //   lastTransferAt: timestamp,
-    //   attributes: {
-    //     size: data.attributes?.size,
-    //     category: data.attributes?.category,
-    //     rarity: data.attributes?.rarity,
-    //   },
-    // };
-
-    // Upload du fichier sur IPFS et ajout au groupe
-    const upload = await pinata.upload.file(file).addMetadata({
+    const metadata = {
       name: data.name,
-      keyValues: {
-        type: data.type,
-        owner: data.owner,
-        createdAt: timestamp,
-        lastTransferAt: timestamp,
-        rarity: data.rarity,
-      },
+      type: data.type,
+      image: `https://${pinataGateway}/ipfs/${upload.IpfsHash}`, // Référence au fichier IPFS
+      createdAt: timestamp,
+      rarity: data.rarity,
+    };
+
+    // Upload des métadonnées sur IPFS et ajout au groupe
+    const metadataUpload = await pinata.upload.json(metadata, {
+      groupId: group.id,
+      name: "metadata.json", // Specify the filename here
     });
 
-    // // Upload des métadonnées sur IPFS et ajout au groupe
-    // const metadataUpload = await pinata.upload.json(metadata, {
-    //   groupId: group.id,
-    // });
-
-    // console.log(metadataUpload);
-    console.log("✅ Fichier uploadé avec succès :", upload);
-
-    // console.log(
-    //   "✅ Fichier et métadonnées uploadés avec succès :",
-    //   metadataUpload
-    // );
-
     return {
-      cid: upload.IpfsHash, // CID du groupe
+      cid: metadataUpload.IpfsHash, // CID du groupe
       url: `https://${import.meta.env.VITE_GATEWAY_URL}/ipfs/${
         upload.IpfsHash
       }`,

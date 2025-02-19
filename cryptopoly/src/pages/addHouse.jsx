@@ -38,7 +38,6 @@ const AddHouse = () => {
       const metadata = {
         name,
         type: resourceTypes[selectedType],
-        owner: wallet?.address,
         rarity: "Rare",
       };
 
