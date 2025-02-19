@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useWallet } from "../context/walletContext";
 import { uploadToIPFS } from "../utils/pinata";
@@ -7,7 +7,20 @@ const AddHouse = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [file, setFile] = useState(null);
+  const [resourceTypes, setResourceTypes] = useState([]);
+  const [selectedType, setSelectedType] = useState(0);
   const { provider, signer, wallet, resourceToken } = useWallet();
+
+  useEffect(() => {
+    const fetchResourceTypes = async () => {
+      if (resourceToken) {
+        const types = await resourceToken.getResourceTypes();
+        setResourceTypes(types);
+        setSelectedType(0); // Sélectionner le premier type par défaut
+      }
+    };
+    fetchResourceTypes();
+  }, [resourceToken]);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -38,10 +51,17 @@ const AddHouse = () => {
 
       const value = ethers.parseUnits(price, 18);
 
+      console.log("selectedType", selectedType);
       // Appel du smart contract
-      const tx = await resourceToken.mintHouse(name, value, ipfsHash, {
-        gasLimit: 10000000,
-      });
+      const tx = await resourceToken.mintHouse(
+        name,
+        selectedType,
+        value,
+        ipfsHash,
+        {
+          gasLimit: 10000000,
+        }
+      );
 
       await tx.wait();
       alert("✅ Maison ajoutée avec succès !");
@@ -85,6 +105,27 @@ const AddHouse = () => {
               className="mt-1 p-2 w-full border border-gray-300 rounded-md"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Type de Maison
+            </label>
+            <select
+              value={selectedType}
+              onChange={(e) => {
+                console.log("e.target.value", e.target.value);
+                
+                setSelectedType(parseInt(e.target.value))}}
+              className="mt-1 p-2 w-full border border-gray-300 rounded-md"
+              required
+            >
+              {resourceTypes.map((type, index) => (
+                <option key={index} value={index}>
+                  {type}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
