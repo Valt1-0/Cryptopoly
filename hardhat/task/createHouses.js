@@ -13,15 +13,31 @@ task("create-houses", "Crée des maisons pour la mairie")
     const resourceToken = await ResourceToken.attach(contractAddress);
 
     const houses = [
-      { name: "Modern Villa", price: 4, ipfsHash: "QmVilla123" },
-      { name: "Cozy Cabin", price: 2, ipfsHash: "QmCabin456" },
-      { name: "Luxury Mansion", price: 7, ipfsHash: "QmMansion789" },
-      { name: "Train Station", price: 7, ipfsHash: "QmStation999" },
+      {
+        name: "Modern Villa",
+        price: 4,
+        ipfsHash: "QmVilla123",
+        resourceType: 1,
+      },
+      { name: "Cozy Cabin", price: 2, ipfsHash: "QmCabin456", resourceType: 0 },
+      {
+        name: "Luxury Mansion",
+        price: 7,
+        ipfsHash: "QmMansion789",
+        resourceType: 2,
+      },
+      {
+        name: "Train Station",
+        price: 7,
+        ipfsHash: "QmStation999",
+        resourceType: 0,
+      },
     ];
 
     for (let house of houses) {
       let tx = await resourceToken.mintHouse(
         house.name,
+        house.resourceType,
         house.price,
         house.ipfsHash
       );

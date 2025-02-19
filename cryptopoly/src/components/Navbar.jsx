@@ -69,6 +69,7 @@ const Navbar = () => {
   };
 
   const handleConnect = async () => {
+    await addSupCoinToMetaMask();
     await connectWallet();
   };
 
@@ -157,7 +158,7 @@ const Navbar = () => {
           </motion.span>
 
           {/* Bouton Ajouter SupCoin */}
-          <motion.button
+          {/* <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
@@ -165,7 +166,7 @@ const Navbar = () => {
             onClick={addSupCoinToMetaMask}
           >
             + Add SupCoin to MetaMask
-          </motion.button>
+          </motion.button> */}
 
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
