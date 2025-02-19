@@ -33,13 +33,17 @@ const Market = () => {
       let availableHouses = [];
 
       for (let i = 0; i < houseIds.length; i++) {
-        const house = await resourceToken.houses(houseIds[i]);
+        const houseData = await resourceToken.getHouse(houseIds[i]);
+
         availableHouses.push({
           id: houseIds[i],
-          title: house.name,
-          price: ethers.formatUnits(house.price, 18),
-          imgPath: house.ipfsHash,
-          available: house.available,
+          title: houseData[0], // name
+          type: houseData[1], // resourceType (string)
+          price: ethers.formatUnits(houseData[2], 18), // value
+          imgPath: houseData[3], // ipfsHash
+          createdAt: houseData[4],
+          lastTransferAt: houseData[5],
+          available: houseData[6], // available
         });
       }
       setHouses(availableHouses);

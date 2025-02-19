@@ -133,4 +133,35 @@ contract ResourceToken is ERC721URIStorage {
         types[2] = "HOTEL";
         return types;
     }
+
+
+    function getHouse(uint256 tokenId) public view returns (
+    string memory name,
+    string memory resourceType,
+    uint256 value,
+    string memory ipfsHash,
+    uint256 createdAt,
+    uint256 lastTransferAt,
+    bool available
+) {
+    require(tokenId > 0 && tokenId <= _tokenIds, "Invalid tokenId");
+    House storage house = houses[tokenId];
+
+    return (
+        house.name,
+        getResourceTypeAsString(house.resourceType),
+        house.value,
+        house.ipfsHash,
+        house.createdAt,
+        house.lastTransferAt,
+        house.available
+    );
+}
+
+function getResourceTypeAsString(ResourceType resourceType) internal pure returns (string memory) {
+    if (resourceType == ResourceType.MAISON) return "MAISON";
+    if (resourceType == ResourceType.VILLA) return "VILLA";
+    if (resourceType == ResourceType.HOTEL) return "HOTEL";
+    return "";
+}
 }
