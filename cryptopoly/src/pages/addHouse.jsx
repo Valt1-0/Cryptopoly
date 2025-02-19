@@ -51,7 +51,6 @@ const AddHouse = () => {
 
       const value = ethers.parseUnits(price, 18);
 
-      console.log("selectedType", selectedType);
       // Appel du smart contract
       const tx = await resourceToken.mintHouse(
         name,
