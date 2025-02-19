@@ -113,10 +113,7 @@ const AddHouse = () => {
             </label>
             <select
               value={selectedType}
-              onChange={(e) => {
-                console.log("e.target.value", e.target.value);
-                
-                setSelectedType(parseInt(e.target.value))}}
+              onChange={(e) => setSelectedType(parseInt(e.target.value))}
               className="mt-1 p-2 w-full border border-gray-300 rounded-md"
               required
             >
