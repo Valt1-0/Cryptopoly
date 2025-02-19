@@ -47,9 +47,14 @@ const AddHouse = () => {
 
       // Upload de l'image sur IPFS via Pinata
       const ipfsResponse = await uploadToIPFS(file, metadata, wallet?.address);
-      const ipfsHash = ipfsResponse.cid;
-
+      const ipfsHash = ipfsResponse.url;
+      console.log("✅ Image uploadée sur IPFS :", ipfsResponse, ipfsHash);
       const value = ethers.parseUnits(price, 18);
+      // Obtenir le nonce actuel
+      const nonce = await provider.getTransactionCount(
+        wallet.address,
+        "latest"
+      );
 
       // Appel du smart contract
       const tx = await resourceToken.mintHouse(
@@ -58,6 +63,7 @@ const AddHouse = () => {
         value,
         ipfsHash,
         {
+          nonce: nonce, // Utiliser le nonce obtenu
           gasLimit: 10000000,
         }
       );
@@ -69,6 +75,7 @@ const AddHouse = () => {
       setFile(null);
     } catch (error) {
       console.error("❌ Erreur lors de l'ajout de la maison :", error);
+      console.log(error.message);
       alert("Erreur lors de l'ajout. Détails en console.");
     }
   };

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Card from "../components/Card";
 import { useWallet } from "../context/walletContext";
 import { ethers } from "ethers";
+import { fetchFromIPFS } from "../utils/pinata";
 
 const Market = () => {
   const [balance, setBalance] = useState("0");
@@ -34,7 +35,12 @@ const Market = () => {
 
       for (let i = 0; i < houseIds.length; i++) {
         const houseData = await resourceToken.getHouse(houseIds[i]);
+        console.log("houseData", houseData);
+        if(houseData[0] == "test21") {
 
+          const test = await fetchFromIPFS(houseData[3]);
+          console.log("test", test);
+        }
         availableHouses.push({
           id: houseIds[i],
           title: houseData[0], // name
