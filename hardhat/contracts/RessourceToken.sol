@@ -12,7 +12,11 @@ contract ResourceToken is ERC721URIStorage {
     uint256 public maxOwnership = 4;
     uint256 public transactionCooldown = 5 minutes;
 
-    enum ResourceType { MAISON, VILLA, HOTEL }
+    enum ResourceType {
+        MAISON,
+        VILLA,
+        HOTEL
+    }
 
     struct House {
         string name;
@@ -28,8 +32,19 @@ contract ResourceToken is ERC721URIStorage {
     mapping(uint256 => House) public houses;
     mapping(address => uint256) public lastTransactionTime;
 
-    event HouseMinted(uint256 indexed tokenId, address indexed owner, string name, ResourceType resourceType, uint256 value, string ipfsHash);
-    event HousePurchased(uint256 indexed tokenId, address indexed buyer, uint256 value);
+    event HouseMinted(
+        uint256 indexed tokenId,
+        address indexed owner,
+        string name,
+        ResourceType resourceType,
+        uint256 value,
+        string ipfsHash
+    );
+    event HousePurchased(
+        uint256 indexed tokenId,
+        address indexed buyer,
+        uint256 value
+    );
     event HouseListed(uint256 indexed tokenId, uint256 value);
 
     constructor(address paymentTokenAddress) ERC721("ResourceToken", "RTK") {
@@ -43,7 +58,10 @@ contract ResourceToken is ERC721URIStorage {
         uint256 value,
         string memory ipfsHash
     ) public returns (uint256) {
-        require(balanceOf(msg.sender) < maxOwnership, "Ownership limit reached");
+        require(
+            balanceOf(msg.sender) < maxOwnership,
+            "Ownership limit reached"
+        );
 
         _tokenIds += 1;
         uint256 newItemId = _tokenIds;
@@ -61,15 +79,36 @@ contract ResourceToken is ERC721URIStorage {
             available: true
         });
 
-        emit HouseMinted(newItemId, msg.sender, name, resourceType, value, ipfsHash);
+        emit HouseMinted(
+            newItemId,
+            msg.sender,
+            name,
+            resourceType,
+            value,
+            ipfsHash
+        );
         return newItemId;
     }
 
     function purchaseHouse(uint256 tokenId) public {
         require(houses[tokenId].available, "House not available for sale");
-        require(paymentToken.transferFrom(msg.sender, ownerOf(tokenId), houses[tokenId].value), "Payment failed");
-        require(balanceOf(msg.sender) < maxOwnership, "Ownership limit reached");
-        require(block.timestamp >= lastTransactionTime[msg.sender] + transactionCooldown, "Cooldown active");
+        require(
+            paymentToken.transferFrom(
+                msg.sender,
+                ownerOf(tokenId),
+                houses[tokenId].value
+            ),
+            "Payment failed"
+        );
+        require(
+            balanceOf(msg.sender) < maxOwnership,
+            "Ownership limit reached"
+        );
+        require(
+            block.timestamp >=
+                lastTransactionTime[msg.sender] + transactionCooldown,
+            "Cooldown active"
+        );
 
         address previousOwner = ownerOf(tokenId);
         _transfer(previousOwner, msg.sender, tokenId);
@@ -82,10 +121,17 @@ contract ResourceToken is ERC721URIStorage {
         emit HousePurchased(tokenId, msg.sender, houses[tokenId].value);
     }
 
-    function listHouseForSale(uint256 tokenId, uint256 value, ResourceType resourceType) public {
+    function listHouseForSale(
+        uint256 tokenId,
+        uint256 value,
+        ResourceType resourceType
+    ) public {
         require(ownerOf(tokenId) == msg.sender, "You are not the owner");
         require(!houses[tokenId].available, "House is already on sale");
-        require(houses[tokenId].resourceType == resourceType, "Invalid resource type");
+        require(
+            houses[tokenId].resourceType == resourceType,
+            "Invalid resource type"
+        );
 
         houses[tokenId].value = value;
         houses[tokenId].available = true;
@@ -134,34 +180,41 @@ contract ResourceToken is ERC721URIStorage {
         return types;
     }
 
+    function getHouse(
+        uint256 tokenId
+    )
+        public
+        view
+        returns (
+            string memory name,
+            string memory resourceType,
+            uint256 value,
+            string memory ipfsHash,
+            uint256 createdAt,
+            uint256 lastTransferAt,
+            bool available
+        )
+    {
+        require(tokenId > 0 && tokenId <= _tokenIds, "Invalid tokenId");
+        House storage house = houses[tokenId];
 
-    function getHouse(uint256 tokenId) public view returns (
-    string memory name,
-    string memory resourceType,
-    uint256 value,
-    string memory ipfsHash,
-    uint256 createdAt,
-    uint256 lastTransferAt,
-    bool available
-) {
-    require(tokenId > 0 && tokenId <= _tokenIds, "Invalid tokenId");
-    House storage house = houses[tokenId];
+        return (
+            house.name,
+            getResourceTypeAsString(house.resourceType),
+            house.value,
+            house.ipfsHash,
+            house.createdAt,
+            house.lastTransferAt,
+            house.available
+        );
+    }
 
-    return (
-        house.name,
-        getResourceTypeAsString(house.resourceType),
-        house.value,
-        house.ipfsHash,
-        house.createdAt,
-        house.lastTransferAt,
-        house.available
-    );
-}
-
-function getResourceTypeAsString(ResourceType resourceType) internal pure returns (string memory) {
-    if (resourceType == ResourceType.MAISON) return "MAISON";
-    if (resourceType == ResourceType.VILLA) return "VILLA";
-    if (resourceType == ResourceType.HOTEL) return "HOTEL";
-    return "";
-}
+    function getResourceTypeAsString(
+        ResourceType resourceType
+    ) internal pure returns (string memory) {
+        if (resourceType == ResourceType.MAISON) return "MAISON";
+        if (resourceType == ResourceType.VILLA) return "VILLA";
+        if (resourceType == ResourceType.HOTEL) return "HOTEL";
+        return "";
+    }
 }
