@@ -102,4 +102,68 @@ describe("ResourceToken", function () {
       resourceToken.listHouseForSale(1, ethers.utils.parseUnits("1000", 18), 0)
     ).to.be.revertedWith("House is already on sale");
   });
+  it("Should fail if user tries to buy too quickly after last transaction", async function () {
+    await resourceToken.mintHouse(
+      "Maison de Luxe",
+      0,
+      ethers.utils.parseUnits("1000", 18),
+      "Qm...hash"
+    );
+
+    await supCoin.transfer(addr1.address, ethers.utils.parseUnits("2000", 18));
+    await supCoin
+      .connect(addr1)
+      .approve(resourceToken.address, ethers.utils.parseUnits("2000", 18));
+
+    // Premier achat (réussi)
+    await resourceToken.connect(addr1).purchaseHouse(1);
+
+    // Mint d'une nouvelle maison pour tester le cooldown
+    await resourceToken.mintHouse(
+      "Maison de Campagne",
+      0,
+      ethers.utils.parseUnits("1000", 18),
+      "Qm...hash"
+    );
+
+    // Deuxième achat immédiat (devrait échouer à cause du cooldown)
+    await expect(
+      resourceToken.connect(addr1).purchaseHouse(2)
+    ).to.be.revertedWith("Cooldown active");
+  });
+  it("Should fail if user owns more than maxOwnership houses", async function () {
+    for (let i = 1; i <= 4; i++) {
+      await resourceToken.mintHouse(
+        `Maison ${i}`,
+        0,
+        ethers.utils.parseUnits("1000", 18),
+        "Qm...hash"
+      );
+    }
+
+    // Tenter de mint une 5ème maison (devrait échouer)
+    await expect(
+      resourceToken.mintHouse(
+        "Maison 5",
+        0,
+        ethers.utils.parseUnits("1000", 18),
+        "Qm...hash"
+      )
+    ).to.be.revertedWith("Ownership limit reached");
+  });
+  it("Should fail if non-owner tries to sell a house", async function () {
+    await resourceToken.mintHouse(
+      "Maison de Luxe",
+      0,
+      ethers.utils.parseUnits("1000", 18),
+      "Qm...hash"
+    );
+
+    // addr1 tente de vendre une maison qu'il ne possède pas
+    await expect(
+      resourceToken
+        .connect(addr1)
+        .listHouseForSale(1, ethers.utils.parseUnits("1000", 18), 0)
+    ).to.be.revertedWith("You are not the owner");
+  });
 });
