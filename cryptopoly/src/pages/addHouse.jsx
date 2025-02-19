@@ -37,16 +37,13 @@ const AddHouse = () => {
 
       const metadata = {
         name,
-        value: price,
-        attributes: {
-          size: "150m²",
-          category: "Résidentiel",
-          rarity: "Rare",
-        },
+        type: resourceTypes[selectedType],
+        owner: wallet?.address,
+        rarity: "Rare",
       };
 
       // Upload de l'image sur IPFS via Pinata
-      const ipfsResponse = await uploadToIPFS(file, metadata, wallet?.address);
+      const ipfsResponse = await uploadToIPFS(file, metadata);
       const ipfsHash = ipfsResponse.url;
       console.log("✅ Image uploadée sur IPFS :", ipfsResponse, ipfsHash);
       const value = ethers.parseUnits(price, 18);
