@@ -4,15 +4,20 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 contract ResourceToken is ERC721URIStorage {
     uint256 private _tokenIds;
     IERC20 private paymentToken;
-    address public municipality; // Adresse de la mairie
+    uint256 public maxOwnership = 4;
+    uint256 public transactionCooldown = 5 minutes;
+
+    enum ResourceType { MAISON, VILLA, HOTEL }
 
     struct House {
         string name;
-        uint256 price;
+        ResourceType resourceType;
+        uint256 value;
         string ipfsHash;
         address[] previousOwners;
         uint256 createdAt;
@@ -21,29 +26,34 @@ contract ResourceToken is ERC721URIStorage {
     }
 
     mapping(uint256 => House) public houses;
+    mapping(address => uint256) public lastTransactionTime;
+
+    event HouseMinted(uint256 indexed tokenId, address indexed owner, string name, ResourceType resourceType, uint256 value, string ipfsHash);
+    event HousePurchased(uint256 indexed tokenId, address indexed buyer, uint256 value);
+    event HouseListed(uint256 indexed tokenId, uint256 value);
 
     constructor(address paymentTokenAddress) ERC721("ResourceToken", "RTK") {
         _tokenIds = 0;
         paymentToken = IERC20(paymentTokenAddress);
-        municipality = msg.sender; // La mairie est l'initial propriétaire des maisons
     }
 
-    // Fonction de minting (création d'une maison par la mairie)
     function mintHouse(
         string memory name,
-        uint256 price,
+        ResourceType resourceType,
+        uint256 value,
         string memory ipfsHash
     ) public returns (uint256) {
-        require(msg.sender == municipality, "Only the municipality can mint houses");
+        require(balanceOf(msg.sender) < maxOwnership, "Ownership limit reached");
 
         _tokenIds += 1;
         uint256 newItemId = _tokenIds;
-        _mint(municipality, newItemId);
+        _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, ipfsHash);
 
         houses[newItemId] = House({
             name: name,
-            price: price,
+            resourceType: resourceType,
+            value: value,
             ipfsHash: ipfsHash,
             previousOwners: new address[](0),
             createdAt: block.timestamp,
@@ -51,24 +61,38 @@ contract ResourceToken is ERC721URIStorage {
             available: true
         });
 
+        emit HouseMinted(newItemId, msg.sender, name, resourceType, value, ipfsHash);
         return newItemId;
     }
 
-    // Fonction pour acheter une maison mise en vente par la mairie
     function purchaseHouse(uint256 tokenId) public {
-        require(houses[tokenId].available == true, "House not available for sale");
-        require(paymentToken.transferFrom(msg.sender, municipality, houses[tokenId].price), "Payment failed");
+        require(houses[tokenId].available, "House not available for sale");
+        require(paymentToken.transferFrom(msg.sender, ownerOf(tokenId), houses[tokenId].value), "Payment failed");
+        require(balanceOf(msg.sender) < maxOwnership, "Ownership limit reached");
+        require(block.timestamp >= lastTransactionTime[msg.sender] + transactionCooldown, "Cooldown active");
 
-        // Transférer la maison au nouvel acheteur
-        _transfer(municipality, msg.sender, tokenId);
+        address previousOwner = ownerOf(tokenId);
+        _transfer(previousOwner, msg.sender, tokenId);
 
-        // Mettre à jour les informations de la maison
-        houses[tokenId].previousOwners.push(municipality);
+        houses[tokenId].previousOwners.push(previousOwner);
         houses[tokenId].lastTransferAt = block.timestamp;
         houses[tokenId].available = false;
+        lastTransactionTime[msg.sender] = block.timestamp;
+
+        emit HousePurchased(tokenId, msg.sender, houses[tokenId].value);
     }
 
-    // Fonction pour récupérer les maisons appartenant à l'utilisateur
+    function listHouseForSale(uint256 tokenId, uint256 value, ResourceType resourceType) public {
+        require(ownerOf(tokenId) == msg.sender, "You are not the owner");
+        require(!houses[tokenId].available, "House is already on sale");
+        require(houses[tokenId].resourceType == resourceType, "Invalid resource type");
+
+        houses[tokenId].value = value;
+        houses[tokenId].available = true;
+
+        emit HouseListed(tokenId, value);
+    }
+
     function getMyHouses() public view returns (uint256[] memory) {
         uint256 count = balanceOf(msg.sender);
         uint256[] memory ownedHouses = new uint256[](count);
@@ -83,12 +107,6 @@ contract ResourceToken is ERC721URIStorage {
         return ownedHouses;
     }
 
-    // Fonction pour obtenir le nombre total de maisons créées
-    function totalSupply() public view returns (uint256) {
-        return _tokenIds;
-    }
-
-    // Fonction pour récupérer les maisons disponibles à la vente
     function getAvailableHouses() public view returns (uint256[] memory) {
         uint256 count = 0;
         for (uint256 i = 1; i <= _tokenIds; i++) {
@@ -106,5 +124,13 @@ contract ResourceToken is ERC721URIStorage {
             }
         }
         return availableHouses;
+    }
+
+    function getResourceTypes() public pure returns (string[] memory) {
+        string[] memory types = new string[](3);
+        types[0] = "MAISON";
+        types[1] = "VILLA";
+        types[2] = "HOTEL";
+        return types;
     }
 }
