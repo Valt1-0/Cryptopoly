@@ -43,7 +43,7 @@ const AddHouse = () => {
 
       // Upload de l'image sur IPFS via Pinata
       const ipfsResponse = await uploadToIPFS(file, metadata);
-      const ipfsHash = ipfsResponse.url;
+      const ipfsHash = ipfsResponse?.cid;
       console.log("✅ Image uploadée sur IPFS :", ipfsResponse, ipfsHash);
       const value = ethers.parseUnits(price, 18);
       // Obtenir le nonce actuel

@@ -55,6 +55,7 @@ export const uploadToIPFS = async (file, data) => {
 
 export const fetchFromIPFS = async (cid) => {
   try {
+    console.log("cid", cid);
     // Récupération des fichiers sur IPFS
     const {data} = await pinata.gateways.get(cid);
 
