@@ -36,17 +36,16 @@ const Market = () => {
       for (let i = 0; i < houseIds.length; i++) {
         const houseData = await resourceToken.getHouse(houseIds[i]);
         console.log("houseData", houseData);
-        if(houseData[0] == "test21") {
 
-          const test = await fetchFromIPFS(houseData[3]);
-          console.log("test", test);
-        }
+        const ipfsInfo = await fetchFromIPFS(houseData[3]);
+        
+        console.log("ipfsInfo", ipfsInfo);
         availableHouses.push({
           id: houseIds[i],
           title: houseData[0], // name
           type: houseData[1], // resourceType (string)
           price: ethers.formatUnits(houseData[2], 18), // value
-          imgPath: houseData[3], // ipfsHash
+          imgPath: ipfsInfo?.image, // ipfsHash
           createdAt: houseData[4],
           lastTransferAt: houseData[5],
           available: houseData[6], // available
