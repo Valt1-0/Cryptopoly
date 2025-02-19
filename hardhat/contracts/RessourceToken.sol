@@ -11,6 +11,7 @@ contract ResourceToken is ERC721URIStorage {
     IERC20 private paymentToken;
     uint256 public maxOwnership = 4;
     uint256 public transactionCooldown = 5 minutes;
+    error PaymentFailed(); // Custom error
 
     enum ResourceType {
         MAISON,
@@ -92,14 +93,16 @@ contract ResourceToken is ERC721URIStorage {
 
     function purchaseHouse(uint256 tokenId) public {
         require(houses[tokenId].available, "House not available for sale");
-        require(
+        try
             paymentToken.transferFrom(
                 msg.sender,
                 ownerOf(tokenId),
                 houses[tokenId].value
-            ),
-            "Payment failed"
-        );
+            )
+        {} catch {
+            revert PaymentFailed();
+        }
+
         require(
             balanceOf(msg.sender) < maxOwnership,
             "Ownership limit reached"

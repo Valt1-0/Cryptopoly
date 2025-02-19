@@ -1,4 +1,3 @@
-// filepath: /D:/PERSO/Documents/SupInfo/5BLOC/exercice/React/hardhat-boilerplate-master/contracts/SupCoin.sol
 // SPDX-License-Identifier: UNLICENSED
 
 // Solidity files have to start with this pragma.

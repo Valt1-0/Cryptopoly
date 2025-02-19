@@ -38,21 +38,27 @@ task("faucet", "Sends ETH and tokens to an address")
     const supCoin = await ethers.getContractAt("SupCoin", address.SupCoin);
     const [sender] = await ethers.getSigners();
 
+    // Vérifiez le solde du compte sender
+    const senderBalance = await supCoin.balanceOf(sender.address);
+    const transferAmount = ethers.utils.parseUnits("100", 18);
+
+    if (senderBalance.lt(transferAmount)) {
+      console.error("Not enough tokens");
+      return;
+    }
+
     // Transfert de SUP
-    const supTx = await supCoin.transfer(
-      receiver,
-      ethers.utils.parseUnits("100", 18)
-    );
+    const supTx = await supCoin.transfer(receiver, transferAmount);
     await supTx.wait();
     console.log(`Transferred 100 SUP to ${receiver}`);
 
     // Transfert de ETH
     const ethTx = await sender.sendTransaction({
       to: receiver,
-      value: ethers.utils.parseEther("100"), // 1 ETH
+      value: ethers.utils.parseEther("1"), // 1 ETH
     });
     await ethTx.wait();
-    console.log(`Transferred 100 ETH to ${receiver}`);
+    console.log(`Transferred 1 ETH to ${receiver}`);
   });
 
 module.exports = {};
