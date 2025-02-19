@@ -62,7 +62,6 @@ export const WalletProvider = ({ children }) => {
       const fetchBalance = async () => {
         try {
           let walletAddress = await signer.getAddress();
-          console.log("Adresse du wallet:", walletAddress);
           if (!walletAddress) {
             walletAddress = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"; // Remplace par l'adresse de ton compte Hardhat
           }

@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
 import howUseData from "../data/howUse.json";
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
 
 const Home = () => {
   return (
     <div className="text-white min-h-screen">
-
       {/* Hero Section with Animated Blobs */}
       <div className="hero relative min-h-screen bg-background-light overflow-hidden flex items-center justify-center">
         {/* Blobs Animation */}
@@ -30,7 +28,7 @@ const Home = () => {
               to={"/market"}
               className="btn btn-accent transition-transform duration-300 hover:scale-110"
             >
-              Get Started
+              Go to the MarketPlace
             </Link>
           </div>
         </div>

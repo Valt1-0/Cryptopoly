@@ -1,32 +1,36 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "../context/walletContext";
 import { motion } from "framer-motion";
-
 import * as FAIcons from "react-icons/fa";
 import * as SIIcons from "react-icons/si";
 import { Link } from "react-router-dom";
 
 const networkDetails = {
-  homestead: {
-    name: "Ethereum",
-    icon: <FAIcons.FaEthereum className="text-blue-400" />,
-    token: "ETH",
-  },
   sepolia: {
     name: "Sepolia Testnet",
     icon: <FAIcons.FaEthereum className="text-blue-400" />,
     token: "ETH",
   },
-  "bnb-smart-chain": {
-    name: "Binance Smart Chain",
-    icon: <SIIcons.SiBinance className="text-yellow-400" />,
-    token: "BNB",
-  },
   supcoin: {
     name: "SupCoin",
-    icon: <SIIcons.SiEthereum className="text-green-400" />,
+    icon: <SIIcons.SiEthereum className="text-purple-400" />,
     token: "SUP",
   },
+};
+
+// Détails du réseau SupCoin
+const SUPCOIN_NETWORK_PARAMS = {
+  chainId: "0x7A69",
+  chainName: "SupCoin",
+  iconUrls: [
+    "https://scontent.frns1-1.fna.fbcdn.net/v/t39.30808-6/333993870_770478147936292_6413207552341760167_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=3RyKQxy77DEQ7kNvgHYUGyQ&_nc_zt=23&_nc_ht=scontent.frns1-1.fna&_nc_gid=A5X1o0c79xkryiNW5CvLusy&oh=00_AYBJRjZfPM2Q072l0qWdYlZJ5WhE3guB4msneXjd9KLc_A&oe=67BAF1E5",
+  ],
+  nativeCurrency: {
+    decimals: 18,
+    name: "SupCoin",
+    symbol: "SUP",
+  },
+  rpcUrls: ["http://127.0.0.1:8545"],
 };
 
 const Navbar = () => {
@@ -65,13 +69,6 @@ const Navbar = () => {
   };
 
   const handleConnect = async () => {
-    // const address = await connectWallet(setWallet);
-    // if (address) {
-    //   setWallet((prevWallet) => ({
-    //     ...prevWallet,
-    //     address,
-    //   }));
-    // }
     await connectWallet();
   };
 
@@ -79,11 +76,40 @@ const Navbar = () => {
     disconnectWallet();
   };
 
+  const addSupCoinToMetaMask = async () => {
+    if (window.ethereum) {
+      try {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [SUPCOIN_NETWORK_PARAMS],
+        });
+        console.log("✅ SupCoin ajouté à MetaMask !");
+      } catch (error) {
+        console.error("❌ Erreur lors de l'ajout du réseau :", error);
+      }
+    } else {
+      alert("MetaMask n'est pas installé !");
+    }
+  };
+
   return (
     <div className="navbar bg-background-light text-primary-content border-b border-border-dark px-6 py-3 flex items-center justify-between">
       <Link to="/" className="text-xl font-bold text-accent">
         CRYPTOPOLY
       </Link>
+      {wallet && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="btn btn-secondary hover:text-accent text-xs w-24"
+        >
+          <Link to="/add-house">
+            <FAIcons.FaPlus />
+            Add House (DEV TEST)
+          </Link>
+        </motion.div>
+      )}
       {wallet ? (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -126,9 +152,20 @@ const Navbar = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-sm flex items-center gap-1 bg-gray-800 px-3 py-1 rounded-full text-white"
           >
-            {networkDetails[wallet.network]?.icon}
+            {networkDetails[wallet.network]?.icon || <FAIcons.FaQuestion />}
             {networkDetails[wallet.network]?.name || "Inconnu"}
           </motion.span>
+
+          {/* Bouton Ajouter SupCoin */}
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="btn btn-primary hover:text-accent text-xs w-32"
+            onClick={addSupCoinToMetaMask}
+          >
+            + Add SupCoin to MetaMask
+          </motion.button>
 
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}

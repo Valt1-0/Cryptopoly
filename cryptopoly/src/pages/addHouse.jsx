@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
 import { useWallet } from "../context/walletContext";
+import { uploadToIPFS } from "../utils/pinata";
 
 const AddHouse = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [ipfsHash, setIpfsHash] = useState("");
+  const [file, setFile] = useState(null);
   const { provider, signer, wallet, resourceToken } = useWallet();
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
   const handleAddHouse = async (e) => {
     e.preventDefault();
@@ -15,10 +20,25 @@ const AddHouse = () => {
       if (!wallet?.address) throw new Error("❌ Wallet non connecté.");
       if (!resourceToken)
         throw new Error("❌ Contrat de ResourceToken non initialisé.");
+      if (!file) throw new Error("❌ Veuillez ajouter une image.");
+
+      const metadata = {
+        name,
+        value: price,
+        attributes: {
+          size: "150m²",
+          category: "Résidentiel",
+          rarity: "Rare",
+        },
+      };
+
+      // Upload de l'image sur IPFS via Pinata
+      const ipfsResponse = await uploadToIPFS(file, metadata, wallet?.address);
+      const ipfsHash = ipfsResponse.cid;
 
       const value = ethers.parseUnits(price, 18);
 
-      // Fonction pour créer la maison via le smart contract
+      // Appel du smart contract
       const tx = await resourceToken.mintHouse(name, value, ipfsHash, {
         gasLimit: 10000000,
       });
@@ -27,7 +47,7 @@ const AddHouse = () => {
       alert("✅ Maison ajoutée avec succès !");
       setName("");
       setPrice("");
-      setIpfsHash("");
+      setFile(null);
     } catch (error) {
       console.error("❌ Erreur lors de l'ajout de la maison :", error);
       alert("Erreur lors de l'ajout. Détails en console.");
@@ -42,15 +62,11 @@ const AddHouse = () => {
         </h2>
         <form onSubmit={handleAddHouse} className="space-y-4">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label className="block text-sm font-medium text-gray-700">
               Nom de la Maison
             </label>
             <input
               type="text"
-              id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="mt-1 p-2 w-full border border-gray-300 rounded-md"
@@ -59,15 +75,11 @@ const AddHouse = () => {
           </div>
 
           <div>
-            <label
-              htmlFor="price"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label className="block text-sm font-medium text-gray-700">
               Prix en SUP
             </label>
             <input
               type="number"
-              id="price"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               className="mt-1 p-2 w-full border border-gray-300 rounded-md"
@@ -76,17 +88,13 @@ const AddHouse = () => {
           </div>
 
           <div>
-            <label
-              htmlFor="ipfsHash"
-              className="block text-sm font-medium text-gray-700"
-            >
-              IPFS Hash
+            <label className="block text-sm font-medium text-gray-700">
+              Image de la Maison
             </label>
             <input
-              type="text"
-              id="ipfsHash"
-              value={ipfsHash}
-              onChange={(e) => setIpfsHash(e.target.value)}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
               className="mt-1 p-2 w-full border border-gray-300 rounded-md"
               required
             />
