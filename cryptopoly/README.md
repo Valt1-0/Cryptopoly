@@ -40,7 +40,7 @@ npm run dev
 yarn dev
 ```
 
-This will start the Vite development server and you can view the application at `http://localhost:3000`.
+This will start the Vite development server and you can view the application at `http://localhost:port`.
 
 ### Building for Production
 
