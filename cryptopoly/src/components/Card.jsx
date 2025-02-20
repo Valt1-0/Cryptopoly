@@ -1,6 +1,6 @@
 import { FaEthereum } from "react-icons/fa";
 
-const Card = ({ title, imgPath, price, handleBuy }) => {
+const Card = ({ title, imgPath, price, handleBuy,children }) => {
   return (
     <div className="relative w-80 h-64 bg-white/10 border border-white/20 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-neon">
       {/* Effet Neon (Halo) */}
@@ -34,6 +34,7 @@ const Card = ({ title, imgPath, price, handleBuy }) => {
             Buy
           </button>
         )}
+        {children}
       </div>
     </div>
   );

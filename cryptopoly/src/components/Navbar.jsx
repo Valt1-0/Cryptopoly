@@ -99,17 +99,29 @@ const Navbar = () => {
         CRYPTOPOLY
       </Link>
       {wallet && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="btn btn-secondary hover:text-accent text-xs w-24"
-        >
-          <Link to="/add-house">
-            <FAIcons.FaPlus />
-            Add House (DEV TEST)
-          </Link>
-        </motion.div>
+        <>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="btn btn-secondary hover:text-accent text-xs w-24"
+          >
+            <Link to="/add-house">
+              <FAIcons.FaPlus />
+              Add House (DEV TEST)
+            </Link>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="btn btn-secondary hover:text-accent text-xs w-24"
+          >
+            <Link to="/profile">
+              Profile
+            </Link>
+          </motion.div>
+        </>
       )}
       {wallet ? (
         <motion.div

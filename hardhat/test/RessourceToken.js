@@ -78,7 +78,7 @@ describe("ResourceToken", function () {
     // Liste la maison à nouveau
     await resourceToken
       .connect(addr1)
-      .listHouseForSale(1, ethers.utils.parseUnits("1000", 18), 0);
+      .listHouseForSale(1, ethers.utils.parseUnits("1000", 18));
 
     // Vérifier que la maison est bien listée à nouveau
     house = await resourceToken.houses(1);
@@ -99,7 +99,7 @@ describe("ResourceToken", function () {
 
     // Essayer de la remettre en vente sans passer par une vente
     await expect(
-      resourceToken.listHouseForSale(1, ethers.utils.parseUnits("1000", 18), 0)
+      resourceToken.listHouseForSale(1, ethers.utils.parseUnits("1000", 18))
     ).to.be.revertedWith("House is already on sale");
   });
   it("Should fail if user tries to buy too quickly after last transaction", async function () {
@@ -163,7 +163,7 @@ describe("ResourceToken", function () {
     await expect(
       resourceToken
         .connect(addr1)
-        .listHouseForSale(1, ethers.utils.parseUnits("1000", 18), 0)
+        .listHouseForSale(1, ethers.utils.parseUnits("1000", 18))
     ).to.be.revertedWith("You are not the owner");
   });
 });

@@ -124,17 +124,9 @@ contract ResourceToken is ERC721URIStorage {
         emit HousePurchased(tokenId, msg.sender, houses[tokenId].value);
     }
 
-    function listHouseForSale(
-        uint256 tokenId,
-        uint256 value,
-        ResourceType resourceType
-    ) public {
+    function listHouseForSale(uint256 tokenId, uint256 value) public {
         require(ownerOf(tokenId) == msg.sender, "You are not the owner");
         require(!houses[tokenId].available, "House is already on sale");
-        require(
-            houses[tokenId].resourceType == resourceType,
-            "Invalid resource type"
-        );
 
         houses[tokenId].value = value;
         houses[tokenId].available = true;
@@ -148,6 +140,7 @@ contract ResourceToken is ERC721URIStorage {
         uint256 index = 0;
 
         for (uint256 i = 1; i <= _tokenIds; i++) {
+            console.log(ownerOf(1), msg.sender);
             if (ownerOf(i) == msg.sender) {
                 ownedHouses[index] = i;
                 index++;
