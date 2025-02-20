@@ -3,15 +3,23 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract ResourceToken is ERC721URIStorage {
+contract ResourceToken is ERC721URIStorage, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     uint256 private _tokenIds;
     IERC20 private paymentToken;
     uint256 public maxOwnership = 4;
     uint256 public transactionCooldown = 5 minutes;
-    error PaymentFailed(); // Custom error
+
+    error PaymentFailed();
+    error Unauthorized();
+    error CooldownActive();
+    error AlreadyOnSale();
+    error NotAvailable();
+    error InvalidToken();
 
     enum ResourceType {
         MAISON,
@@ -91,29 +99,22 @@ contract ResourceToken is ERC721URIStorage {
         return newItemId;
     }
 
-    function purchaseHouse(uint256 tokenId) public {
-        require(houses[tokenId].available, "House not available for sale");
-        try
-            paymentToken.transferFrom(
-                msg.sender,
-                ownerOf(tokenId),
-                houses[tokenId].value
-            )
-        {} catch {
+    function purchaseHouse(uint256 tokenId) public nonReentrant {
+        if (!houses[tokenId].available) revert NotAvailable();
+        if (ownerOf(tokenId) == msg.sender) revert Unauthorized();
+        if (
+            block.timestamp <
+            lastTransactionTime[msg.sender] + transactionCooldown
+        ) revert CooldownActive();
+
+        address previousOwner = ownerOf(tokenId);
+        uint256 price = houses[tokenId].value;
+
+        if (paymentToken.allowance(msg.sender, address(this)) < price) {
             revert PaymentFailed();
         }
 
-        require(
-            balanceOf(msg.sender) < maxOwnership,
-            "Ownership limit reached"
-        );
-        require(
-            block.timestamp >=
-                lastTransactionTime[msg.sender] + transactionCooldown,
-            "Cooldown active"
-        );
-
-        address previousOwner = ownerOf(tokenId);
+        paymentToken.safeTransferFrom(msg.sender, previousOwner, price);
         _transfer(previousOwner, msg.sender, tokenId);
 
         houses[tokenId].previousOwners.push(previousOwner);
@@ -121,12 +122,12 @@ contract ResourceToken is ERC721URIStorage {
         houses[tokenId].available = false;
         lastTransactionTime[msg.sender] = block.timestamp;
 
-        emit HousePurchased(tokenId, msg.sender, houses[tokenId].value);
+        emit HousePurchased(tokenId, msg.sender, price);
     }
 
     function listHouseForSale(uint256 tokenId, uint256 value) public {
-        require(ownerOf(tokenId) == msg.sender, "You are not the owner");
-        require(!houses[tokenId].available, "House is already on sale");
+        if (ownerOf(tokenId) != msg.sender) revert Unauthorized();
+        if (houses[tokenId].available) revert AlreadyOnSale();
 
         houses[tokenId].value = value;
         houses[tokenId].available = true;
@@ -136,13 +137,14 @@ contract ResourceToken is ERC721URIStorage {
 
     function getMyHouses() public view returns (uint256[] memory) {
         uint256 count = balanceOf(msg.sender);
+        if (count == 0) return new uint256[](0);
+
         uint256[] memory ownedHouses = new uint256[](count);
         uint256 index = 0;
 
-        for (uint256 i = 1; i <= _tokenIds; i++) { 
+        for (uint256 i = 1; i <= _tokenIds; i++) {
             if (ownerOf(i) == msg.sender) {
-                ownedHouses[index] = i;
-                index++;
+                ownedHouses[index++] = i;
             }
         }
         return ownedHouses;
@@ -155,14 +157,13 @@ contract ResourceToken is ERC721URIStorage {
     {
         uint256 count = 0;
         for (uint256 i = 1; i <= _tokenIds; i++) {
-            if (houses[i].available) {
-                count++;
-            }
+            if (houses[i].available) count++;
         }
 
         uint256[] memory availableHouses = new uint256[](count);
         address[] memory owners = new address[](count);
         uint256 index = 0;
+
         for (uint256 i = 1; i <= _tokenIds; i++) {
             if (houses[i].available) {
                 availableHouses[index] = i;
@@ -196,7 +197,7 @@ contract ResourceToken is ERC721URIStorage {
             bool available
         )
     {
-        require(tokenId > 0 && tokenId <= _tokenIds, "Invalid tokenId");
+        if (tokenId == 0 || tokenId > _tokenIds) revert InvalidToken();
         House storage house = houses[tokenId];
 
         return (

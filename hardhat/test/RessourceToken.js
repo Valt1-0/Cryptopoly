@@ -100,8 +100,9 @@ describe("ResourceToken", function () {
     // Essayer de la remettre en vente sans passer par une vente
     await expect(
       resourceToken.listHouseForSale(1, ethers.utils.parseUnits("1000", 18))
-    ).to.be.revertedWith("House is already on sale");
+    ).to.be.revertedWithCustomError(resourceToken, "AlreadyOnSale");
   });
+
   it("Should fail if user tries to buy too quickly after last transaction", async function () {
     await resourceToken.mintHouse(
       "Maison de Luxe",
@@ -129,8 +130,9 @@ describe("ResourceToken", function () {
     // Deuxième achat immédiat (devrait échouer à cause du cooldown)
     await expect(
       resourceToken.connect(addr1).purchaseHouse(2)
-    ).to.be.revertedWith("Cooldown active");
+    ).to.be.revertedWithCustomError(resourceToken, "CooldownActive");
   });
+
   it("Should fail if user owns more than maxOwnership houses", async function () {
     for (let i = 1; i <= 4; i++) {
       await resourceToken.mintHouse(
@@ -151,6 +153,7 @@ describe("ResourceToken", function () {
       )
     ).to.be.revertedWith("Ownership limit reached");
   });
+
   it("Should fail if non-owner tries to sell a house", async function () {
     await resourceToken.mintHouse(
       "Maison de Luxe",
@@ -164,6 +167,6 @@ describe("ResourceToken", function () {
       resourceToken
         .connect(addr1)
         .listHouseForSale(1, ethers.utils.parseUnits("1000", 18))
-    ).to.be.revertedWith("You are not the owner");
+    ).to.be.revertedWithCustomError(resourceToken, "Unauthorized");
   });
 });
