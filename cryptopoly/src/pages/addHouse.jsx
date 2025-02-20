@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import { useWallet } from "../context/walletContext";
-import { uploadToIPFS } from "../utils/pinata";
+import { uploadToIPFS, deleteFromIPFS } from "../utils/pinata";
 
 const AddHouse = () => {
   const [name, setName] = useState("");
@@ -44,8 +44,8 @@ const AddHouse = () => {
       // Upload de l'image sur IPFS via Pinata
       const ipfsResponse = await uploadToIPFS(file, metadata);
       const ipfsHash = ipfsResponse?.cid;
-      console.log("✅ Image uploadée sur IPFS :", ipfsResponse, ipfsHash);
       const value = ethers.parseUnits(price, 18);
+
       // Obtenir le nonce actuel
       const nonce = await provider.getTransactionCount(
         wallet.address,
@@ -68,10 +68,23 @@ const AddHouse = () => {
       alert("✅ Maison ajoutée avec succès !");
       setName("");
       setPrice("");
+      setSelectedType(0);
       setFile(null);
     } catch (error) {
       console.error("❌ Erreur lors de l'ajout de la maison :", error);
       console.log(error.message);
+      // Supprimer les fichiers de Pinata en cas d'erreur
+      if (ipfsResponse?.groupId) {
+        try {
+          await deleteFromIPFS(ipfsResponse.groupId);
+          console.log("✅ Fichiers supprimés de Pinata.");
+        } catch (deleteError) {
+          console.error(
+            "❌ Erreur lors de la suppression des fichiers de Pinata :",
+            deleteError
+          );
+        }
+      }
       alert("Erreur lors de l'ajout. Détails en console.");
     }
   };

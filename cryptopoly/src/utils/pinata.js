@@ -22,6 +22,7 @@ export const uploadToIPFS = async (file, data) => {
       name: data.name,
       type: data.type,
       image: `https://${pinataGateway}/ipfs/${upload.IpfsHash}`,
+      blockchain: "Ethereum",
       createdAt: timestamp,
       rarity: data.rarity,
     };
@@ -42,6 +43,7 @@ export const uploadToIPFS = async (file, data) => {
 
     return {
       cid: metadataUpload.IpfsHash,
+      groupId: group.id,
       url: `https://${import.meta.env.VITE_GATEWAY_URL}/ipfs/${
         metadataUpload.IpfsHash
       }`,
@@ -52,15 +54,34 @@ export const uploadToIPFS = async (file, data) => {
   }
 };
 
-
 export const fetchFromIPFS = async (cid) => {
-  try { 
+  try {
     // Récupération des fichiers sur IPFS
-    const {data} = await pinata.gateways.get(cid);
+    const { data } = await pinata.gateways.get(cid);
 
-    return data ;
+    return data;
   } catch (error) {
     console.error("❌ Erreur lors de la récupération sur IPFS :", error);
+    throw error;
+  }
+};
+
+export const deleteFromIPFS = async (groupId) => {
+  try {
+    const groups = await pinata.groups.delete({
+      groupId: groupId,
+    });
+
+    if (groups == "OK") {
+      console.log(`✅ Fichier avec CID ${cid} supprimé de Pinata.`);
+    } else {
+      console.error("❌ Erreur lors de la suppression du fichier sur IPFS.");
+    }
+  } catch (error) {
+    console.error(
+      "❌ Erreur lors de la suppression du fichier sur IPFS :",
+      error
+    );
     throw error;
   }
 };
