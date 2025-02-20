@@ -38,7 +38,7 @@ const Market = () => {
         console.log("houseData", houseData);
 
         const ipfsInfo = await fetchFromIPFS(houseData[3]);
-        
+
         console.log("ipfsInfo", ipfsInfo);
         availableHouses.push({
           id: houseIds[i],
@@ -102,18 +102,26 @@ const Market = () => {
   };
 
   return (
-    <div className="bg-background-light flex flex-wrap gap-6 justify-center p-6">
+    <div className="bg-background-light min-h-screen h-screen flex flex-wrap gap-6 justify-center p-6">
       <div>Account: {wallet?.address}</div>
       <div>Balance: {balance} SUP</div>
-      {houses.map((house) => (
-        <Card
-          key={house.id}
-          title={house.title}
-          price={house.price}
-          imgPath={house.imgPath}
-          handleBuy={() => buyNFT(house)}
-        />
-      ))}
+      {houses?.length > 0 ? (
+        houses.map((house) => (
+          <Card
+            key={house.id}
+            title={house.title}
+            price={house.price}
+            imgPath={house.imgPath}
+            handleBuy={() => buyNFT(house)}
+          />
+        ))
+      ) : (
+        <div className="w-full items-center justify-center">
+          <p className="text-white  text-center ">
+            Aucune Propriété est en vente
+          </p>
+        </div>
+      )}
     </div>
   );
 };
