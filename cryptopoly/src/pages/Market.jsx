@@ -30,8 +30,9 @@ const Market = () => {
   const fetchHouses = async () => {
     try {
       if (!resourceToken) return;
-      const houseIds = await resourceToken.getAvailableHouses();
+      const [houseIds, owners] = await resourceToken.getAvailableHouses();
       let availableHouses = [];
+      console.log("houseIds", houseIds, owners);
 
       for (let i = 0; i < houseIds.length; i++) {
         const houseData = await resourceToken.getHouse(houseIds[i]);
@@ -42,6 +43,7 @@ const Market = () => {
         console.log("ipfsInfo", ipfsInfo);
         availableHouses.push({
           id: houseIds[i],
+          owner: owners[i],
           title: houseData[0], // name
           type: houseData[1], // resourceType (string)
           price: ethers.formatUnits(houseData[2], 18), // value
@@ -112,7 +114,9 @@ const Market = () => {
             title={house.title}
             price={house.price}
             imgPath={house.imgPath}
-            handleBuy={() => buyNFT(house)}
+            handleBuy={
+              house.owner != wallet.address ? () => buyNFT(house) : null
+            }
           />
         ))
       ) : (

@@ -63,7 +63,7 @@ const Profile = () => {
     try {
       const tx = await resourceToken.listHouseForSale(
         selectedHouse.id,
-        ethers.parseUnits(price, 18),
+        ethers.parseUnits(price, 18)
       );
       await tx.wait();
       fetchMyHouses();
@@ -87,7 +87,7 @@ const Profile = () => {
                 price={house.price}
                 imgPath={house.imgPath}
               >
-                {!house.available && (
+                {!house.available ? (
                   <button
                     className="px-4 py-2 bg-gradient-to-r from-accent to-blue-400 hover:from-purple-400 hover:to-accent text-white font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
                     onClick={() => {
@@ -97,6 +97,8 @@ const Profile = () => {
                   >
                     Remettre en vente
                   </button>
+                ) : (
+                  <p>Actuellement en vente</p>
                 )}
               </Card>
             </div>

@@ -139,8 +139,7 @@ contract ResourceToken is ERC721URIStorage {
         uint256[] memory ownedHouses = new uint256[](count);
         uint256 index = 0;
 
-        for (uint256 i = 1; i <= _tokenIds; i++) {
-            console.log(ownerOf(1), msg.sender);
+        for (uint256 i = 1; i <= _tokenIds; i++) { 
             if (ownerOf(i) == msg.sender) {
                 ownedHouses[index] = i;
                 index++;
@@ -149,7 +148,11 @@ contract ResourceToken is ERC721URIStorage {
         return ownedHouses;
     }
 
-    function getAvailableHouses() public view returns (uint256[] memory) {
+    function getAvailableHouses()
+        public
+        view
+        returns (uint256[] memory, address[] memory)
+    {
         uint256 count = 0;
         for (uint256 i = 1; i <= _tokenIds; i++) {
             if (houses[i].available) {
@@ -158,14 +161,16 @@ contract ResourceToken is ERC721URIStorage {
         }
 
         uint256[] memory availableHouses = new uint256[](count);
+        address[] memory owners = new address[](count);
         uint256 index = 0;
         for (uint256 i = 1; i <= _tokenIds; i++) {
             if (houses[i].available) {
                 availableHouses[index] = i;
+                owners[index] = ownerOf(i);
                 index++;
             }
         }
-        return availableHouses;
+        return (availableHouses, owners);
     }
 
     function getResourceTypes() public pure returns (string[] memory) {
